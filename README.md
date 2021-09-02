@@ -1,3 +1,5 @@
+![Image](https://user-images.githubusercontent.com/35310806/131912718-c9d80cbb-e176-4a73-a2e3-03868c904b7c.png)
+
 # Edubase Reader to PDF
 
 Recently I had to buy some books for school and the books were even available as eBooks. Unfortunately, the eBooks are only accessible with the Edubase Reader. This motivated me to write an app that converts the Edubase SVG solution into a searchable PDF.
@@ -26,3 +28,6 @@ If you got some questions. Feel free to create a issue and linking me.
 11. When everything is done, each page should be in a seperate file inside your `pages` directory.
 12. Combinde the files with any programm you like. (I used Adobe Acrobat Reader.)
 13. Let the app scan the PDF and detect texts. (I used Adobe Acrobat Reader.)
+
+
+Ps: The image was made with MS Paint.
