@@ -1,0 +1,10 @@
+{
+  "name": "edubase-to-pdf",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "chrome-launcher": "^0.14.0",
+    "chrome-remote-interface": "^0.31.0"
+  }
+}
