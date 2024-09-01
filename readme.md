@@ -17,13 +17,14 @@ Bei Fragen, bitte erstelle ein `Issue`, in dem du mich Tagst.
 ``` cmd
 npm install --global yarn
 ```
-10. Erstelle einen Ordner, in der die Umgebung Installiert wird. Gehe mit ``` cmd
+10. Erstelle einen Ordner, in der die Umgebung Installiert wird. Gehe mit ```cmd
 cd C:\$Pfad in den Ordner ```
 11. Downloade die Dateien `package.json` und `yarn.lock` und bewege diese in den Ordner. Installiere die erforderlichen Datein mit ``` cmd
 yarn install ```
 12. Erstelle einen Ordner namens "Files" 
 13. Kopiere alle Dateien (Page 1 - PageXY) in den Files Ordner.
-14. Editiere die Datei `index.js` in einem Texteditor z.B Notepad und setze die Variable  `const numberOfPages = XY;` auf die Anzahl der Seiten, die gedownloaded wurden. Zudem editiere die Variable ```javascript
+14. Editiere die Datei `index.js` in einem Texteditor z.B Notepad und setze die Variable  `const numberOfPages = XY;` auf die Anzahl der Seiten, die gedownloaded wurden. Zudem editiere die Variable
+```cmd 
    Page.navigate({
      url: `file:///C:/Users/iamcool/Edubase_to_pdf/Files/page-${page}.html`,
    });  
