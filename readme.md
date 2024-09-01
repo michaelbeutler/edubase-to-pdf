@@ -14,26 +14,33 @@ Bei Fragen, bitte erstelle ein `Issue`, in dem du mich Tagst.
 7. Nachdem alle HTML Dateien Heruntergeladen wurden, kopiere alle HTML Dateien in einen seperaten Ordner. 
 8. Installiere [Node.js](https://nodejs.org/en/download/prebuilt-installer) auf Windows.
 9. Installiere Yarn mit dem Windows CMD: 
-``` cmd
+```cmd
 npm install --global yarn
 ```
 10. Erstelle einen Ordner, in der die Umgebung Installiert wird. Gehe mit ```cmd
 cd C:\$Pfad in den Ordner ```
-11. Downloade die Dateien `package.json` und `yarn.lock` und bewege diese in den Ordner. Installiere die erforderlichen Datein mit ``` cmd
-yarn install ```
-12. Erstelle einen Ordner namens "Files" 
-13. Kopiere alle Dateien (Page 1 - PageXY) in den Files Ordner.
-14. Editiere die Datei `index.js` in einem Texteditor z.B Notepad und setze die Variable  `const numberOfPages = XY;` auf die Anzahl der Seiten, die gedownloaded wurden. Zudem editiere die Variable
+11. Downloade die Dateien `package.json` und `yarn.lock` und bewege diese in den Ordner. Installiere die erforderlichen Datein mit
+```cmd
+yarn install
+```
+13. Erstelle einen Ordner namens "Files" 
+14. Kopiere alle Dateien (Page 1 - PageXY) in den Files Ordner.
+15. Editiere die Datei `index.js` in einem Texteditor z.B Notepad und setze die Variable  `const numberOfPages = XY;` auf die Anzahl der Seiten, die gedownloaded wurden.
 ```cmd 
    Page.navigate({
      url: `file:///C:/Users/iamcool/Edubase_to_pdf/Files/page-${page}.html`,
    });  
    ```
    Der oben gezeigte Pfad zeigt nun auf den Ordner `C:/Users/iamcool/Edubase_to_pdf/Files`
-15. Führe im CMD den Befehl `node .` aus.
-16. Nun sollten im Ordner `pages` alle PDF Dateien gespeichert werden. Diese können nun mit einem PDF Programm zusammengeführt werden. z.B. Adobe Acrobat Reader.
-17. Lass die Texterkennung über die PDF Datei laufen, um im PDF suchen und Kopieren zu können.
+   
+16. Führe im CMD den Befehl aus:
+```cmd
+node .
+```
+
+
+20. Nun sollten im Ordner `pages` alle PDF Dateien gespeichert werden. Diese können nun mit einem PDF Programm zusammengeführt werden. z.B. Adobe Acrobat Reader.
+21. Lass die Texterkennung über die PDF Datei laufen, um im PDF suchen und Kopieren zu können.
 
 Falls es Probleme oder Fragen gibt, erstelle bitte ein `Issue` auf Github.
-
 
