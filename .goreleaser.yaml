@@ -1,0 +1,181 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+
+# The lines below are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/need to use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 2
+
+project_name: edubase-to-pdf
+
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+    # you may remove this if you don't need go generate
+    - go generate ./...
+
+builds:
+  - binary: edubase-to-pdf
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - windows
+      - linux
+      - freebsd
+      - netbsd
+      - illumos
+    goarch:
+      - amd64
+      - arm64
+      - arm
+      - "386"
+      - ppc64le
+      - s390x
+      - mips64
+      - mips64le
+      - riscv64
+      - loong64
+    goarm:
+      - "6"
+      - "7"
+    gomips:
+      - hardfloat
+    ignore:
+      - goos: darwin
+        goarch: "386"
+      - goos: freebsd
+        goarch: arm64
+
+checksum:
+  name_template: '{{ .ProjectName }}-{{ .Version }}-checksums.txt'
+
+archives:
+  - format: tar.gz
+    wrap_in_directory: true
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: '{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+    files:
+      - LICENSE
+      - README.md
+
+# brews:
+#   - repository:
+#       owner: michaelbeutler
+#       name: homebrew-tap
+#     directory: Formula
+#     homepage: https://michaelbeutler.com
+#     description: Example implementation of michaelbeutler edubase-to-pdf.
+#     install: |
+#       bin.install "edubase-to-pdf"
+#       output = Utils.popen_read("#{bin}/edubase-to-pdf completion bash")
+#       (bash_completion/"edubase-to-pdf").write output
+#       output = Utils.popen_read("#{bin}/edubase-to-pdf completion zsh")
+#       (zsh_completion/"_edubase-to-pdf").write output
+#       output = Utils.popen_read("#{bin}/edubase-to-pdf completion fish")
+#       (fish_completion/"edubase-to-pdf.fish").write output
+#       prefix.install_metafiles
+#     test: |
+#       system "#{bin}/edubase-to-pdf --version"
+
+chocolateys:
+  - name: michaelbeutler-edubase-to-pdf
+    owners: michaelbeutler
+    title: michaelbeutler edubase-to-pdf
+    authors: michaelbeutler
+    project_url: https://docs.michaelbeutler.com
+    url_template: "https://github.com/michaelbeutler/edubase-to-pdf/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    icon_url: "https://avatars.githubusercontent.com/u/144101217?s=200&v=4"
+    copyright: 2024 michaelbeutler
+    license_url: https://github.com/michaelbeutler/edubase-to-pdf/blob/main/LICENSE
+    require_license_acceptance: false
+    project_source_url: https://github.com/michaelbeutler/edubase-to-pdf
+    package_source_url: https://github.com/michaelbeutler/edubase-to-pdf
+    docs_url: https://docs.michaelbeutler.com
+    bug_tracker_url: https://github.com/michaelbeutler/edubase-to-pdf/issues
+    tags: "lora michaelbeutler edubase-to-pdf"
+    summary: michaelbeutler edubase-to-pdf reference implementation.
+    description: |
+      {{ .ProjectName }} installer package.
+      michaelbeutler edubase-to-pdf reference implementation.
+    release_notes: "https://github.com/michaelbeutler/edubase-to-pdf/releases/tag/v{{ .Version }}"
+    api_key: "{{ .Env.CHOCO_API_KEY }}"
+    source_repo: "https://push.chocolatey.org/"
+    skip_publish: false
+    goamd64: v1
+
+dockers:
+  - use: buildx
+    goos: linux
+    goarch: amd64
+    dockerfile: build/buildx.Dockerfile
+    image_templates:
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:latest"
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Tag }}"
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}"
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}.{{ .Minor }}"
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - '--platform=linux/amd64'
+  - use: buildx
+    goos: linux
+    goarch: arm64
+    dockerfile: build/buildx.Dockerfile
+    image_templates:
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:latest-arm64"
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Tag }}-arm64"
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}-arm64"
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}.{{ .Minor }}-arm64"
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - '--platform=linux/arm64'
+  - use: buildx
+    goos: linux
+    goarch: amd64
+    dockerfile: build/buildx-alpine.Dockerfile
+    image_templates:
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:alpine"
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:latest-alpine"
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Tag }}-alpine"
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}-alpine"
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}.{{ .Minor }}-alpine"
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - '--platform=linux/amd64'
+  - use: buildx
+    goos: linux
+    goarch: arm64
+    dockerfile: build/buildx-alpine.Dockerfile
+    image_templates:
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:alpine-arm64"
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:latest-alpine-arm64"
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Tag }}-alpine-arm64"
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}-alpine-arm64"
+      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}.{{ .Minor }}-alpine-arm64"
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - '--platform=linux/arm64'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
