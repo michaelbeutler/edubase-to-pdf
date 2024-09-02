@@ -40,7 +40,7 @@ For Windows users, you can install the edubase-to-pdf binary using Chocolatey:
 
 ```powershell
 # Install using Chocolatey
-choco install michaelbeutler-edubase-to-pdf --version=2.0.2
+choco install michaelbeutler-edubase-to-pdf --version=2.0.3
 
 # ✅ Verify the installation by checking the help
 edubase-to-pdf --help
