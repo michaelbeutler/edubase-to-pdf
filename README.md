@@ -98,6 +98,7 @@ edubase-to-pdf import [flags]
   -s, --start-page int        Start page to import from the book. (default 1) ➡
   -t, --temp string           Temporary directory for screenshots; these will be used to generate the pdf. (default "screenshots") 📂
   -W, --width int             Browser width in pixels; this can affect screenshot quality. (default 2560) 🔎
+  -T, --timeout duration      Maximum time the app can take to download all pages. (increase this value for large books, default 5 min)
 ```
 
 ## Legal Disclaimer ⚖️

@@ -25,6 +25,7 @@ var debug bool = false
 var width int = 2560
 var height int = 1440
 var pageDelay time.Duration = 500 * time.Millisecond
+var timeout time.Duration = 5 * time.Minute
 
 func init() {
 	importCmd.Flags().StringVarP(&screenshotDir, "temp", "t", "screenshots", "Temporary directory for screenshots these will be used to generate the pdf.")
@@ -36,6 +37,7 @@ func init() {
 	importCmd.Flags().IntVarP(&height, "height", "H", height, "Browser height in pixels this can affect the screenshot quality.")
 	importCmd.Flags().IntVarP(&width, "width", "W", width, "Browser width in pixels this can affect the screenshot quality.")
 	importCmd.Flags().DurationVarP(&pageDelay, "page-delay", "D", pageDelay, "Delay between pages in milliseconds. This is required to give the browser time to load the page.")
+	importCmd.Flags().DurationVarP(&timeout, "timeout", "T", timeout, "Maximum time the app can take to download all pages. (increase this value for large books)")
 
 	importCmd.MarkFlagsRequiredTogether("email", "password")
 
@@ -168,6 +170,7 @@ func newPlaywrightPage() (playwright.Page, playwright.Browser, *playwright.Playw
 	pw, _ := playwright.Run()
 	browser, _ := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
 		Headless: playwright.Bool(!debug),
+		Timeout:  playwright.Float(float64(timeout.Milliseconds())),
 	})
 	page, _ := browser.NewPage(playwright.BrowserNewPageOptions{
 		Viewport: &playwright.Size{
