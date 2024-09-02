@@ -40,7 +40,7 @@ For Windows users, you can install the edubase-to-pdf binary using Chocolatey:
 
 ```powershell
 # Install using Chocolatey
-choco install edubase-to-pdf
+choco install michaelbeutler-edubase-to-pdf --version=2.0.2
 
 # ✅ Verify the installation by checking the help
 edubase-to-pdf --help
@@ -57,8 +57,8 @@ docker pull ghcr.io/michaelbeutler/edubase-to-pdf
 # Run the Docker container
 docker run -it ghcr.io/michaelbeutler/edubase-to-pdf edubase-to-pdf --help
 
-# Run the Docker container to start the HTTP server
-docker run -p 8080:8080 ghcr.io/michaelbeutler/edubase-to-pdf edubase-to-pdf import
+# Run the Docker container to import a book
+docker run -v ./ ghcr.io/michaelbeutler/edubase-to-pdf edubase-to-pdf import
 ```
 
 ## Example 🧾👆
