@@ -59,6 +59,11 @@ Contact:
   For any issues or questions, please open an issue on the GitHub repository:
   https://github.com/michaelbeutler/edubase-to-pdf/issues`,
 	Run: func(cmd *cobra.Command, args []string) {
+		err := playwright.Install()
+		if err != nil {
+			log.Fatalf("could not install Playwright: %v", err)
+		}
+
 		importProcess := newImportProcess()
 
 		credentials := edubase.Credentials{
