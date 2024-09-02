@@ -105,14 +105,14 @@ Contact:
 		}
 
 		// open book
-		bookProvider := edubase.NewBookProvider(importProcess.page, book.Id)
+		importProcess.bookProvider = edubase.NewBookProvider(importProcess.page, book.Id)
 
-		err = bookProvider.Open(startPage)
+		err = importProcess.bookProvider.Open(startPage)
 		if err != nil {
 			log.Fatalf("could not open book: %v", err)
 		}
 
-		totalPages, err := bookProvider.GetTotalPages()
+		totalPages, err := importProcess.bookProvider.GetTotalPages()
 		if err != nil {
 			log.Fatalf("could not get total pages: %v", err)
 		}
@@ -129,13 +129,13 @@ Contact:
 			filename := fmt.Sprintf("%s/%d_%d.jpeg", screenshotDir, book.Id, i)
 
 			// take screenshot
-			err = bookProvider.Screenshot(filename)
+			err = importProcess.bookProvider.Screenshot(filename)
 			if err != nil {
 				log.Fatalf("could not take screenshot: %v", err)
 			}
 
 			// next page
-			err = bookProvider.NextPage()
+			err = importProcess.bookProvider.NextPage()
 			if err != nil {
 				log.Fatalf("could not navigate to next page: %v", err)
 			}
@@ -167,9 +167,14 @@ type importProcess struct {
 func newPlaywrightPage() (playwright.Page, playwright.Browser, *playwright.Playwright) {
 	pw, _ := playwright.Run()
 	browser, _ := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless: playwright.Bool(true),
+		Headless: playwright.Bool(!debug),
 	})
-	page, _ := browser.NewPage()
+	page, _ := browser.NewPage(playwright.BrowserNewPageOptions{
+		Viewport: &playwright.Size{
+			Width:  *playwright.Int(width),
+			Height: *playwright.Int(height),
+		},
+	})
 	return page, browser, pw
 }
 
