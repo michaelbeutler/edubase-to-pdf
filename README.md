@@ -22,6 +22,11 @@ Check out this demo to see edubase-to-pdf in action! 👇
 
 ## 📦 Installation
 
+### 🖼️ Installation Video
+For easier installation and usage, we made a video:
+
+[Edubase-to-PDF]([https://github.com/michaelbeutler/edubase-to-pdf/issues](https://youtu.be/BLNL_C_Bdbw))
+
 ### 🔧 Binaries
 
 You can install the edubase-to-pdf binary easily using the following command:
