@@ -25,7 +25,7 @@ Check out this demo to see edubase-to-pdf in action! 👇
 ### 🖼️ Installation Video
 For easier installation and usage, we made a video:
 
-[Edubase-to-PDF](https://youtu.be/BLNL_C_Bdbw)
+[YouTube Edubase-to-PDF installation Tutorial](https://youtu.be/BLNL_C_Bdbw)
 
 ### 🔧 Binaries
 
