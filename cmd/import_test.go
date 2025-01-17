@@ -12,8 +12,8 @@ func TestImport(t *testing.T) {
 		t.Fatalf("could not install Playwright: %v", err)
 	}
 
-	bookId, ok := os.LookupEnv("EDUBASE_BOOK_ID").(int)
-	if !ok {
+	bookId, err := strconv.Atoi(os.Getenv("EDUBASE_BOOK_ID"))
+	if err != nil {
 		t.Fatalf("could not get book id from environment")
 	}
 
