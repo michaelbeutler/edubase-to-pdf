@@ -14,7 +14,7 @@ jobs:
         with:
           go-version: 1.22.2
       - name: Install dependencies 📦
-        run: go get .
+        run: go mod download && go mod verify
       - name: Test 🧪
         run: go test ./... -json > results.json
       - name: Upload results 📤
