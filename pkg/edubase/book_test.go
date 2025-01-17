@@ -12,7 +12,7 @@ func TestOpenBookAtPage1(t *testing.T) {
 	// create a playwright.Page instance for testing
 	pw, err := playwright.Run()
 	if err != nil {
-		t.Fatalf("Failed to create playwright instance: %v", err)
+		t.Fatalf("failed to create playwright instance: %v", err)
 	}
 	defer pw.Stop()
 
@@ -20,13 +20,13 @@ func TestOpenBookAtPage1(t *testing.T) {
 		Headless: playwright.Bool(false),
 	})
 	if err != nil {
-		t.Fatalf("Failed to launch browser: %v", err)
+		t.Fatalf("failed to launch browser: %v", err)
 	}
 	defer browser.Close()
 
 	page, err := browser.NewPage()
 	if err != nil {
-		t.Fatalf("Failed to create new page: %v", err)
+		t.Fatalf("failed to create new page: %v", err)
 	}
 	defer page.Close()
 
@@ -37,7 +37,7 @@ func TestOpenBookAtPage1(t *testing.T) {
 	err = bookProvider.Open(1)
 
 	if err != nil {
-		t.Errorf("open book failed: %v", err)
+		t.Errorf("failed to open book: %v", err)
 	}
 
 	// wait for the page to load
@@ -58,7 +58,7 @@ func TestGetTotalPages(t *testing.T) {
 	// create a playwright.Page instance for testing
 	pw, err := playwright.Run()
 	if err != nil {
-		t.Fatalf("Failed to create playwright instance: %v", err)
+		t.Fatalf("failed to create playwright instance: %v", err)
 	}
 	defer pw.Stop()
 
@@ -66,13 +66,13 @@ func TestGetTotalPages(t *testing.T) {
 		Headless: playwright.Bool(false),
 	})
 	if err != nil {
-		t.Fatalf("Failed to launch browser: %v", err)
+		t.Fatalf("failed to launch browser: %v", err)
 	}
 	defer browser.Close()
 
 	page, err := browser.NewPage()
 	if err != nil {
-		t.Fatalf("Failed to create new page: %v", err)
+		t.Fatalf("failed to create new page: %v", err)
 	}
 	defer page.Close()
 
@@ -83,7 +83,7 @@ func TestGetTotalPages(t *testing.T) {
 	err = bookProvider.Open(1)
 
 	if err != nil {
-		t.Errorf("open book failed: %v", err)
+		t.Errorf("failed to open book: %v", err)
 	}
 
 	// wait for the page to load
@@ -105,7 +105,7 @@ func TestNextPage(t *testing.T) {
 	// create a playwright.Page instance for testing
 	pw, err := playwright.Run()
 	if err != nil {
-		t.Fatalf("Failed to create playwright instance: %v", err)
+		t.Fatalf("failed to create playwright instance: %v", err)
 	}
 	defer pw.Stop()
 
@@ -113,13 +113,13 @@ func TestNextPage(t *testing.T) {
 		Headless: playwright.Bool(false),
 	})
 	if err != nil {
-		t.Fatalf("Failed to launch browser: %v", err)
+		t.Fatalf("failed to launch browser: %v", err)
 	}
 	defer browser.Close()
 
 	page, err := browser.NewPage()
 	if err != nil {
-		t.Fatalf("Failed to create new page: %v", err)
+		t.Fatalf("failed to create new page: %v", err)
 	}
 	defer page.Close()
 
@@ -139,7 +139,7 @@ func TestNextPage(t *testing.T) {
 	// call the NextPage method
 	err = bookProvider.NextPage()
 	if err != nil {
-		t.Errorf("next page failed: %v", err)
+		t.Errorf("failed to get next page: %v", err)
 	}
 
 	// wait for the page to load
@@ -148,7 +148,7 @@ func TestNextPage(t *testing.T) {
 	// get the current page number
 	currentPageInput, err := page.Locator("#pagination > div > div > span").First().InnerText()
 	if err != nil {
-		t.Errorf("could not get current page number: %v", err)
+		t.Errorf("failed to get current page number: %v", err)
 	}
 
 	// check if the current page number is 2
@@ -160,7 +160,7 @@ func TestScreenshot(t *testing.T) {
 	// create a playwright.Page instance for testing
 	pw, err := playwright.Run()
 	if err != nil {
-		t.Fatalf("Failed to create playwright instance: %v", err)
+		t.Fatalf("failed to create playwright instance: %v", err)
 	}
 	defer pw.Stop()
 
@@ -168,13 +168,13 @@ func TestScreenshot(t *testing.T) {
 		Headless: playwright.Bool(false),
 	})
 	if err != nil {
-		t.Fatalf("Failed to launch browser: %v", err)
+		t.Fatalf("failed to launch browser: %v", err)
 	}
 	defer browser.Close()
 
 	page, err := browser.NewPage()
 	if err != nil {
-		t.Fatalf("Failed to create new page: %v", err)
+		t.Fatalf("failed to create new page: %v", err)
 	}
 	defer page.Close()
 
@@ -184,7 +184,7 @@ func TestScreenshot(t *testing.T) {
 	// call the Open method
 	err = bookProvider.Open(1)
 	if err != nil {
-		t.Errorf("open book failed: %v", err)
+		t.Errorf("failed to open book: %v", err)
 	}
 
 	// wait for the page to load

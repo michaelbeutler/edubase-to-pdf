@@ -19,6 +19,7 @@ Check out this demo to see edubase-to-pdf in action! 👇
 - 📂 **Temporary Directory**: Specify a temporary directory for screenshots.
 - ⏳ **Page Delay**: Set a delay between pages to give the browser time to load.
 - 🔎 **Browser Size**: Customize the browser width and height for better screenshot quality.
+- 😵‍💫 **Lightweight**: Single binary, no bloat like Python scripts. 😉
 
 ## 📦 Installation
 
@@ -105,6 +106,11 @@ edubase-to-pdf import [flags]
   -W, --width int             Browser width in pixels; this can affect screenshot quality. (default 2560) 🔎
   -T, --timeout duration      Maximum time the app can take to download all pages. (increase this value for large books, default 5 min)
 ```
+
+## Alternatives 🔄📚
+
+- https://github.com/rtfmkiesel/edubase-downloader
+- feel free to open a PR to add more alternatives
 
 ## Legal Disclaimer ⚖️
 
