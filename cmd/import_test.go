@@ -35,6 +35,10 @@ func TestImport(t *testing.T) {
 		t.Fatalf("could not get total pages: %v", err)
 	}
 
+	if totalPages == 0 {
+		t.Fatalf("total pages is 0")
+	}
+
 	if err = importProcess.browser.Close(); err != nil {
 		t.Fatalf("could not close browser: %v", err)
 	}
