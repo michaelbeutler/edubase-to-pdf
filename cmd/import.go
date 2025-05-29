@@ -155,6 +155,7 @@ Contact:
 
 		// Generate PDF from screenshots that are previously taken
 		barImgtoPdf := progressbar.Default(int64(totalPages), "Generating PDF...")
+		pdfPath := fmt.Sprintf("%s.pdf", book.Title)
 		for i := startPage; i <= (startPage-1)+totalPages; i++ {
 
 			filename := fmt.Sprintf("%s/%d_%d.jpeg", screenshotDir, book.Id, i)
@@ -164,9 +165,9 @@ Contact:
 		}
 
 		// Read the PDF Syntax
-		pdfReadCtx, err := pdfcpu.ReadContextFile(fmt.Sprintf("%s.pdf", book.Title))
+		pdfReadCtx, err := pdfcpu.ReadContextFile(pdfPath)
 		if err != nil {
-			log.Fatalf("❌ Failed to read PDF file '%s' to validate: %v", fmt.Sprintf("%s.pdf", book.Title), err)
+			log.Fatalf("❌ Failed to read PDF file '%s' to validate: %v", pdfPath, err)
 		}
 		// Validate the number of pages in the PDF
 		actualPageCountInPdf := pdfReadCtx.PageCount
