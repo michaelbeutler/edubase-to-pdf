@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/huh"
@@ -155,7 +156,7 @@ Contact:
 
 		// Generate PDF from screenshots that are previously taken
 		barImgtoPdf := progressbar.Default(int64(totalPages), "Generating PDF...")
-		pdfPath := fmt.Sprintf("%s.pdf", book.Title)
+		pdfPath := fmt.Sprintf("%s.pdf", sanitizeFilename(book.Title))
 		for i := startPage; i <= (startPage-1)+totalPages; i++ {
 
 			filename := fmt.Sprintf("%s/%d_%d.jpeg", screenshotDir, book.Id, i)
@@ -187,6 +188,14 @@ Contact:
 		}
 
 	},
+}
+
+func sanitizeFilename(filename string) string {
+	sanitized := filename
+	for _, char := range []string{"/", "\\", ":", "*", "?", "\"", "<", ">", "|"} {
+		sanitized = strings.ReplaceAll(sanitized, char, "_")
+	}
+	return sanitized
 }
 
 type importProcess struct {
