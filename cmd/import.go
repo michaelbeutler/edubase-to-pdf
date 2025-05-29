@@ -22,6 +22,7 @@ var password string = ""
 var maxPages int = -1
 var startPage int = 1
 var debug bool = false
+var imgOverwrite bool = false
 var width int = 2560
 var height int = 1440
 var pageDelay time.Duration = 500 * time.Millisecond
@@ -33,6 +34,7 @@ func init() {
 	importCmd.Flags().StringVarP(&password, "password", "p", "", "Edubase password for login.")
 	importCmd.Flags().IntVarP(&maxPages, "max-pages", "m", -1, "Max pages to import from the book.")
 	importCmd.Flags().IntVarP(&startPage, "start-page", "s", 1, "Start page to import from the book.")
+	importCmd.Flags().BoolVarP(&imgOverwrite, "img-overwrite", "o", false, "Overwrite existing screenshots.")
 	importCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Debug mode. Show browser window.")
 	importCmd.Flags().IntVarP(&height, "height", "H", height, "Browser height in pixels this can affect the screenshot quality.")
 	importCmd.Flags().IntVarP(&width, "width", "W", width, "Browser width in pixels this can affect the screenshot quality.")
@@ -125,15 +127,21 @@ Contact:
 
 		createDirIfNotExists(screenshotDir)
 
-		bar := progressbar.Default(int64(totalPages))
+		barDownloadImg := progressbar.Default(int64(totalPages), "Downloading pages...")
 		for i := startPage; i <= (startPage-1)+totalPages; i++ {
-			time.Sleep(pageDelay)
+
 			filename := fmt.Sprintf("%s/%d_%d.jpeg", screenshotDir, book.Id, i)
 
-			// take screenshot
-			err = importProcess.bookProvider.Screenshot(filename)
-			if err != nil {
-				log.Fatalf("could not take screenshot: %v", err)
+			if _, err := os.Stat(filename); err == nil && !imgOverwrite {
+				// file exists, skip screenshot
+			} else {
+				// wait for page to load
+				time.Sleep(pageDelay)
+				// take screenshot
+				err = importProcess.bookProvider.Screenshot(filename)
+				if err != nil {
+					log.Fatalf("could not take screenshot: %v", err)
+				}
 			}
 
 			// next page
@@ -142,9 +150,32 @@ Contact:
 				log.Fatalf("could not navigate to next page: %v", err)
 			}
 
-			// generate pdf
-			pdfcpu.ImportImagesFile([]string{filename}, fmt.Sprintf("%d.pdf", book.Id), nil, model.NewDefaultConfiguration())
-			bar.Add(1)
+			barDownloadImg.Add(1)
+		}
+
+		// Generate PDF from screenshots that are previously taken
+		barImgtoPdf := progressbar.Default(int64(totalPages), "Generating PDF...")
+		for i := startPage; i <= (startPage-1)+totalPages; i++ {
+
+			filename := fmt.Sprintf("%s/%d_%d.jpeg", screenshotDir, book.Id, i)
+			// Generate PDF and append
+			pdfcpu.ImportImagesFile([]string{filename}, fmt.Sprintf("%s.pdf", book.Title), nil, model.NewDefaultConfiguration())
+			barImgtoPdf.Add(1)
+		}
+
+		// Read the PDF Syntax
+		pdfReadCtx, err := pdfcpu.ReadContextFile(fmt.Sprintf("%s.pdf", book.Title))
+		if err != nil {
+			log.Fatalf("❌ Failed to read PDF file '%s' to validate: %v", fmt.Sprintf("%s.pdf", book.Title), err)
+		}
+		// Validate the number of pages in the PDF
+		actualPageCountInPdf := pdfReadCtx.PageCount
+		if actualPageCountInPdf < totalPages {
+			fmt.Printf("❌ Failed to import all pages! Ebook Pages: %d | Pages in PDF: %d. Maybe delete PDF and try again.", totalPages, actualPageCountInPdf)
+		}
+
+		if actualPageCountInPdf > totalPages {
+			fmt.Printf("❌ PDF has to many pages! Ebook Pages: %d | Pages in PDF: %d. Maybe delete PDF and try again.", totalPages, actualPageCountInPdf)
 		}
 
 		if err = importProcess.browser.Close(); err != nil {
