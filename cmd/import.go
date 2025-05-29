@@ -171,11 +171,11 @@ Contact:
 		// Validate the number of pages in the PDF
 		actualPageCountInPdf := pdfReadCtx.PageCount
 		if actualPageCountInPdf < totalPages {
-			fmt.Printf("❌ Failed to import all pages! Ebook Pages: %d | Pages in PDF: %d. Maybe delete PDF and try again.", totalPages, actualPageCountInPdf)
+			log.Fatalf("❌ Failed to import all pages! Ebook Pages: %d | Pages in PDF: %d. Maybe delete PDF and try again.", totalPages, actualPageCountInPdf)
 		}
 
 		if actualPageCountInPdf > totalPages {
-			fmt.Printf("❌ PDF has to many pages! Ebook Pages: %d | Pages in PDF: %d. Maybe delete PDF and try again.", totalPages, actualPageCountInPdf)
+			log.Fatalf("❌ PDF has too many pages! Ebook Pages: %d | Pages in PDF: %d. Maybe delete PDF and try again.", totalPages, actualPageCountInPdf)
 		}
 
 		if err = importProcess.browser.Close(); err != nil {
