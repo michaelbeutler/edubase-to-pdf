@@ -1,11 +1,12 @@
 package cmd
 
 import (
-	"github.com/michaelbeutler/edubase-to-pdf/pkg/edubase"
-	"github.com/playwright-community/playwright-go"
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/michaelbeutler/edubase-to-pdf/pkg/edubase"
+	"github.com/playwright-community/playwright-go"
 )
 
 func TestImport(t *testing.T) {
@@ -46,5 +47,32 @@ func TestImport(t *testing.T) {
 
 	if err = importProcess.pw.Stop(); err != nil {
 		t.Fatalf("could not stop Playwright: %v", err)
+	}
+}
+
+func TestSanitizeFilename(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"normal_filename", "normal_filename"},
+		{"file/with/slash", "file_with_slash"},
+		{"file\\with\\backslash", "file_with_backslash"},
+		{"file:with:colon", "file_with_colon"},
+		{"file*with*asterisk", "file_with_asterisk"},
+		{"file?with?question", "file_with_question"},
+		{"file\"with\"quote", "file_with_quote"},
+		{"file<with<less", "file_with_less"},
+		{"file>with>greater", "file_with_greater"},
+		{"file|with|pipe", "file_with_pipe"},
+		{"all/\\:*?\"<>|chars", "all_________chars"},
+		{"", ""},
+	}
+
+	for _, tt := range tests {
+		result := sanitizeFilename(tt.input)
+		if result != tt.expected {
+			t.Errorf("sanitizeFilename(%q) = %q; want %q", tt.input, result, tt.expected)
+		}
 	}
 }
