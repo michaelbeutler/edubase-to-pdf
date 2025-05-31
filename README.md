@@ -99,6 +99,7 @@ edubase-to-pdf import [flags]
   -H, --height int            Browser height in pixels; this can affect screenshot quality. (default 1440) 🔍
   -h, --help                  Help for import.
   -m, --max-pages int         Maximum pages to import from the book. (default -1) 🔝
+  -o  --img-overwrite         Overwrite existing screenshots. 🖼️
   -D, --page-delay duration   Delay between pages in milliseconds. This is required to give the browser time to load the page. (default 500ms) ⏳
   -p, --password string       Edubase password for login. 🔑
   -s, --start-page int        Start page to import from the book. (default 1) ➡
