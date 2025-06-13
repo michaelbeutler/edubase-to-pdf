@@ -79,7 +79,8 @@ func (b *BookProvider) Screenshot(filename string) error {
 	}
 
 	// check if filename has the correct extension
-	if !regexp.MustCompile(`.*\.jpe?g`).MatchString(filename) {
+	// ensure filename ends with .jpg or .jpeg (case-insensitive)
+	if !regexp.MustCompile(`(?i)\.jpe?g$`).MatchString(filename) {
 		return fmt.Errorf("filename has the wrong extension")
 	}
 

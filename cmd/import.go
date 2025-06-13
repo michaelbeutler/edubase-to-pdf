@@ -158,10 +158,11 @@ Contact:
 		barImgtoPdf := progressbar.Default(int64(totalPages), "Generating PDF...")
 		pdfPath := fmt.Sprintf("%s.pdf", sanitizeFilename(book.Title))
 		for i := startPage; i <= (startPage-1)+totalPages; i++ {
-
 			filename := fmt.Sprintf("%s/%d_%d.jpeg", screenshotDir, book.Id, i)
-			// Generate PDF and append
-			pdfcpu.ImportImagesFile([]string{filename}, fmt.Sprintf("%s.pdf", book.Title), nil, model.NewDefaultConfiguration())
+			// Generate PDF and append to the sanitized output file
+			if err := pdfcpu.ImportImagesFile([]string{filename}, pdfPath, nil, model.NewDefaultConfiguration()); err != nil {
+				log.Fatalf("could not import image %s: %v", filename, err)
+			}
 			barImgtoPdf.Add(1)
 		}
 
