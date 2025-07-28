@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.4
-FROM golang:1.23
+FROM golang:1.25rc2-alpine3.21
 
 # Metadata as defined in OCI image spec annotations
 LABEL org.opencontainers.image.vendor="michaelbeutler"
