@@ -28,6 +28,8 @@ var width int = 2560
 var height int = 1440
 var pageDelay time.Duration = 500 * time.Millisecond
 var timeout time.Duration = 5 * time.Minute
+var maxRetryLogin int = 2
+var loginManually bool = false
 
 func init() {
 	importCmd.Flags().StringVarP(&screenshotDir, "temp", "t", "screenshots", "Temporary directory for screenshots these will be used to generate the pdf.")
@@ -41,8 +43,8 @@ func init() {
 	importCmd.Flags().IntVarP(&width, "width", "W", width, "Browser width in pixels this can affect the screenshot quality.")
 	importCmd.Flags().DurationVarP(&pageDelay, "page-delay", "D", pageDelay, "Delay between pages in milliseconds. This is required to give the browser time to load the page.")
 	importCmd.Flags().DurationVarP(&timeout, "timeout", "T", timeout, "Maximum time the app can take to download all pages. (increase this value for large books)")
-
-	importCmd.MarkFlagsRequiredTogether("email", "password")
+	importCmd.Flags().IntVarP(&maxRetryLogin, "max-retry-login", "", 2, "Maximum number of login attempts when login fails due to timeout or other issues.")
+	importCmd.Flags().BoolVarP(&loginManually, "login-manually", "", false, "Enable manual login mode. When enabled with --debug, allows user to login manually in browser.")
 
 	rootCmd.AddCommand(importCmd)
 }
@@ -64,6 +66,15 @@ Contact:
   For any issues or questions, please open an issue on the GitHub repository:
   https://github.com/michaelbeutler/edubase-to-pdf/issues`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// Validate flags
+		if loginManually && (email != "" || password != "") {
+			log.Fatalf("--login-manually cannot be used with --email or --password flags")
+		}
+		
+		if !loginManually && email == "" && password == "" {
+			// Both manual login and credentials are missing, will prompt for credentials later
+		}
+
 		err := playwright.Install()
 		if err != nil {
 			log.Fatalf("could not install Playwright: %v", err)
@@ -76,14 +87,23 @@ Contact:
 			Password: password,
 		}
 
-		// if email or password is empty, get credentials from form
-		if email == "" || password == "" {
-			c, err := edubase.GetCredentials()
-			if err != nil {
-				log.Fatalf("could not get credentials: %v", err)
+		// if manual login is enabled, skip credential validation
+		if loginManually {
+			if !debug {
+				log.Fatalf("manual login mode requires --debug flag to be enabled")
 			}
+			// credentials are not needed for manual login
+			credentials = edubase.Credentials{}
+		} else {
+			// if email or password is empty, get credentials from form
+			if email == "" || password == "" {
+				c, err := edubase.GetCredentials()
+				if err != nil {
+					log.Fatalf("could not get credentials: %v", err)
+				}
 
-			credentials = c
+				credentials = c
+			}
 		}
 
 		// login
@@ -240,7 +260,7 @@ func newImportProcess() *importProcess {
 func (i *importProcess) login(credentials edubase.Credentials) {
 	err := spinner.New().Title("logging in...").
 		Action(func() {
-			err := i.loginProvider.Login(credentials)
+			err := i.loginProvider.LoginWithRetry(credentials, maxRetryLogin, loginManually)
 			if err != nil {
 				log.Fatalf("could not login: %v", err)
 			}
