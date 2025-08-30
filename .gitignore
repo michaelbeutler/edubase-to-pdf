@@ -26,6 +26,9 @@ go.work
 
 # End of https://www.toptal.com/developers/gitignore/api/go
 
+# Application binary
+edubase-to-pdf
+
 *.pdf
 *.jpeg
 *.jpg
