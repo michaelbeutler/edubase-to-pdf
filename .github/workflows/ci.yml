@@ -5,6 +5,8 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      GO_VERSION: "1.23"
 
     steps:
       - name: Checkout 🛎️
@@ -12,11 +14,19 @@ jobs:
       - name: Setup Go 📦
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22.2
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
       - name: Install dependencies 📦
         run: go mod download && go mod verify
+      - name: Install Playwright 📦
+        run: go run github.com/playwright-community/playwright-go/cmd/playwright@latest install --with-deps
       - name: Test 🧪
         run: go test ./... -json > results.json
+        env:
+          EDUBASE_EMAIL: ${{ secrets.EDUBASE_EMAIL }}
+          EDUBASE_PASSWORD: ${{ secrets.EDUBASE_PASSWORD }}
+          EDUBASE_BOOK_ID: ${{ secrets.EDUBASE_BOOK_ID }}
+          CI: "true"
       - name: Upload results 📤
         uses: actions/upload-artifact@v4
         with:

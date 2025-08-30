@@ -9,22 +9,62 @@ import (
 	"github.com/playwright-community/playwright-go"
 )
 
+// newTestImportProcess creates a new import process with headless mode set based on CI environment
+func newTestImportProcess() *importProcess {
+	pw, _ := playwright.Run()
+	
+	// Use headless mode in CI environment
+	headless := os.Getenv("CI") == "true"
+	
+	browser, _ := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
+		Headless: playwright.Bool(headless),
+		Timeout:  playwright.Float(float64(timeout.Milliseconds())),
+	})
+	
+	page, _ := browser.NewPage(playwright.BrowserNewPageOptions{
+		Viewport: &playwright.Size{
+			Width:  *playwright.Int(width),
+			Height: *playwright.Int(height),
+		},
+	})
+
+	loginProvider := edubase.NewLoginProvider(page)
+	libraryProvider := edubase.NewLibraryProvider(page)
+
+	return &importProcess{
+		page:            page,
+		browser:         browser,
+		pw:              pw,
+		loginProvider:   loginProvider,
+		libraryProvider: libraryProvider,
+	}
+}
+
 func TestImport(t *testing.T) {
+	// Skip integration test if required environment variables are not set
+	email := os.Getenv("EDUBASE_EMAIL")
+	password := os.Getenv("EDUBASE_PASSWORD")
+	bookIdStr := os.Getenv("EDUBASE_BOOK_ID")
+	
+	if email == "" || password == "" || bookIdStr == "" {
+		t.Skip("Skipping integration test: EDUBASE_EMAIL, EDUBASE_PASSWORD, and EDUBASE_BOOK_ID environment variables must be set")
+	}
+
 	if err := playwright.Install(); err != nil {
 		t.Fatalf("could not install Playwright: %v", err)
 	}
 
-	bookId, err := strconv.Atoi(os.Getenv("EDUBASE_BOOK_ID"))
+	bookId, err := strconv.Atoi(bookIdStr)
 	if err != nil {
-		t.Fatalf("could not get book id from environment")
+		t.Fatalf("could not parse book id from environment: %v", err)
 	}
 
 	credentials := edubase.Credentials{
-		Email:    os.Getenv("EDUBASE_EMAIL"),
-		Password: os.Getenv("EDUBASE_PASSWORD"),
+		Email:    email,
+		Password: password,
 	}
 
-	importProcess := newImportProcess()
+	importProcess := newTestImportProcess()
 	importProcess.login(credentials)
 	importProcess.bookProvider = edubase.NewBookProvider(importProcess.page, bookId)
 
