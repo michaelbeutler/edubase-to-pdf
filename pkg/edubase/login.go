@@ -25,9 +25,8 @@ func NewLoginProvider(page playwright.Page) *LoginProvider {
 }
 
 type Credentials struct {
-	Email       string
-	Password    string
-	manualLogin bool
+	Email    string
+	Password string
 }
 
 func GetCredentials() (Credentials, error) {
@@ -47,7 +46,7 @@ func GetCredentials() (Credentials, error) {
 	return credentials, nil
 }
 
-func (l *LoginProvider) Login(credentials Credentials) error {
+func (l *LoginProvider) Login(credentials Credentials, manualLogin bool) error {
 	// go to login page
 	if _, err := l.page.Goto(fmt.Sprintf("%s/#promo?popup=login", l.baseURL)); err != nil {
 		return fmt.Errorf("could not go to login page: %v", err)
@@ -55,7 +54,7 @@ func (l *LoginProvider) Login(credentials Credentials) error {
 
 	// manual login
 
-	if credentials.manualLogin {
+	if manualLogin {
 		fmt.Println("Please complete the login in the opened browser window...")
 		// wait for user to complete login
 		if err := l.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
