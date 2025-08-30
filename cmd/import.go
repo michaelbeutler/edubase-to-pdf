@@ -24,6 +24,7 @@ var maxPages int = -1
 var startPage int = 1
 var debug bool = false
 var imgOverwrite bool = false
+var manualLogin bool = false
 var width int = 2560
 var height int = 1440
 var pageDelay time.Duration = 500 * time.Millisecond
@@ -37,6 +38,7 @@ func init() {
 	importCmd.Flags().IntVarP(&startPage, "start-page", "s", 1, "Start page to import from the book.")
 	importCmd.Flags().BoolVarP(&imgOverwrite, "img-overwrite", "o", false, "Overwrite existing screenshots.")
 	importCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Debug mode. Show browser window.")
+	importCmd.Flags().BoolVarP(&manualLogin, "microsoft", "d", false, "Type your credentials manually. This is useful if you use Microsoft login.")
 	importCmd.Flags().IntVarP(&height, "height", "H", height, "Browser height in pixels this can affect the screenshot quality.")
 	importCmd.Flags().IntVarP(&width, "width", "W", width, "Browser width in pixels this can affect the screenshot quality.")
 	importCmd.Flags().DurationVarP(&pageDelay, "page-delay", "D", pageDelay, "Delay between pages in milliseconds. This is required to give the browser time to load the page.")
@@ -72,8 +74,9 @@ Contact:
 		importProcess := newImportProcess()
 
 		credentials := edubase.Credentials{
-			Email:    email,
-			Password: password,
+			Email:       email,
+			Password:    password,
+			manualLogin: manualLogin,
 		}
 
 		// if email or password is empty, get credentials from form
