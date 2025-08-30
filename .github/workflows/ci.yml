@@ -19,7 +19,9 @@ jobs:
       - name: Install dependencies 📦
         run: go mod download && go mod verify
       - name: Install Playwright 📦
-        run: go run github.com/playwright-community/playwright-go/cmd/playwright@latest install --with-deps
+        run: |
+          go install github.com/playwright-community/playwright-go/cmd/playwright@latest
+          playwright install --with-deps
       - name: Test 🧪
         run: go test ./... -json > results.json
         env:
