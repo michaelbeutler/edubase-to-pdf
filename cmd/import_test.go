@@ -46,8 +46,14 @@ func TestImport(t *testing.T) {
 	password := os.Getenv("EDUBASE_PASSWORD")
 	bookIdStr := os.Getenv("EDUBASE_BOOK_ID")
 	
-	if email == "" || password == "" || bookIdStr == "" {
-		t.Fatalf("Integration test failed: EDUBASE_EMAIL, EDUBASE_PASSWORD, and EDUBASE_BOOK_ID environment variables must be set. Current values - EDUBASE_EMAIL: %q, EDUBASE_PASSWORD: %q, EDUBASE_BOOK_ID: %q", email, password, bookIdStr)
+	if email == "" || password == "" {
+		t.Fatalf("Integration test failed: EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set. Current values - EDUBASE_EMAIL: %q, EDUBASE_PASSWORD: %q", email, password)
+	}
+
+	// Use default book ID if not provided (same as other tests)
+	if bookIdStr == "" {
+		bookIdStr = "58216"
+		t.Logf("EDUBASE_BOOK_ID not set, using default book ID: %s", bookIdStr)
 	}
 
 	if err := playwright.Install(); err != nil {
@@ -56,7 +62,7 @@ func TestImport(t *testing.T) {
 
 	bookId, err := strconv.Atoi(bookIdStr)
 	if err != nil {
-		t.Fatalf("could not parse book id from environment: %v", err)
+		t.Fatalf("could not parse book id: %v", err)
 	}
 
 	credentials := edubase.Credentials{
