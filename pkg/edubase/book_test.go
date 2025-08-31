@@ -7,13 +7,6 @@ import (
 )
 
 func TestOpenBookAtPage1(t *testing.T) {
-	// Check if required environment variables are set
-	email := os.Getenv("EDUBASE_EMAIL")
-	password := os.Getenv("EDUBASE_PASSWORD")
-	if email == "" || password == "" {
-		t.Fatalf("Integration test failed: EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set. Current values - EDUBASE_EMAIL: %q, EDUBASE_PASSWORD: %q", email, password)
-	}
-
 	// create a playwright.Page instance for testing
 	page, browser, pw, err := setupTestPlaywright()
 	if err != nil {
@@ -48,13 +41,6 @@ func TestOpenBookAtPage1(t *testing.T) {
 }
 
 func TestGetTotalPages(t *testing.T) {
-	// Check if required environment variables are set
-	email := os.Getenv("EDUBASE_EMAIL")
-	password := os.Getenv("EDUBASE_PASSWORD")
-	if email == "" || password == "" {
-		t.Fatalf("Integration test failed: EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set. Current values - EDUBASE_EMAIL: %q, EDUBASE_PASSWORD: %q", email, password)
-	}
-
 	// create a playwright.Page instance for testing
 	page, browser, pw, err := setupTestPlaywright()
 	if err != nil {
@@ -90,13 +76,6 @@ func TestGetTotalPages(t *testing.T) {
 }
 
 func TestNextPage(t *testing.T) {
-	// Check if required environment variables are set
-	email := os.Getenv("EDUBASE_EMAIL")
-	password := os.Getenv("EDUBASE_PASSWORD")
-	if email == "" || password == "" {
-		t.Fatalf("Integration test failed: EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set. Current values - EDUBASE_EMAIL: %q, EDUBASE_PASSWORD: %q", email, password)
-	}
-
 	// create a playwright.Page instance for testing
 	page, browser, pw, err := setupTestPlaywright()
 	if err != nil {
@@ -140,13 +119,6 @@ func TestNextPage(t *testing.T) {
 	}
 }
 func TestScreenshot(t *testing.T) {
-	// Check if required environment variables are set
-	email := os.Getenv("EDUBASE_EMAIL")
-	password := os.Getenv("EDUBASE_PASSWORD")
-	if email == "" || password == "" {
-		t.Fatalf("Integration test failed: EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set. Current values - EDUBASE_EMAIL: %q, EDUBASE_PASSWORD: %q", email, password)
-	}
-
 	// create a playwright.Page instance for testing
 	page, browser, pw, err := setupTestPlaywright()
 	if err != nil {
