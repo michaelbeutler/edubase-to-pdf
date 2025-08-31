@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"testing"
@@ -10,23 +11,35 @@ import (
 )
 
 // newTestImportProcess creates a new import process with headless mode set based on CI environment
-func newTestImportProcess() *importProcess {
-	pw, _ := playwright.Run()
+func newTestImportProcess() (*importProcess, error) {
+	pw, err := playwright.Run()
+	if err != nil {
+		return nil, fmt.Errorf("failed to run playwright: %w", err)
+	}
 	
 	// Use headless mode in CI environment
 	headless := os.Getenv("CI") == "true"
 	
-	browser, _ := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
+	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
 		Headless: playwright.Bool(headless),
 		Timeout:  playwright.Float(float64(timeout.Milliseconds())),
 	})
+	if err != nil {
+		pw.Stop()
+		return nil, fmt.Errorf("failed to launch browser: %w", err)
+	}
 	
-	page, _ := browser.NewPage(playwright.BrowserNewPageOptions{
+	page, err := browser.NewPage(playwright.BrowserNewPageOptions{
 		Viewport: &playwright.Size{
 			Width:  *playwright.Int(width),
 			Height: *playwright.Int(height),
 		},
 	})
+	if err != nil {
+		browser.Close()
+		pw.Stop()
+		return nil, fmt.Errorf("failed to create page: %w", err)
+	}
 
 	loginProvider := edubase.NewLoginProvider(page)
 	libraryProvider := edubase.NewLibraryProvider(page)
@@ -37,7 +50,7 @@ func newTestImportProcess() *importProcess {
 		pw:              pw,
 		loginProvider:   loginProvider,
 		libraryProvider: libraryProvider,
-	}
+	}, nil
 }
 
 func TestImport(t *testing.T) {
@@ -56,10 +69,6 @@ func TestImport(t *testing.T) {
 		t.Logf("EDUBASE_BOOK_ID not set, using default book ID: %s", bookIdStr)
 	}
 
-	if err := playwright.Install(); err != nil {
-		t.Fatalf("could not install Playwright: %v", err)
-	}
-
 	bookId, err := strconv.Atoi(bookIdStr)
 	if err != nil {
 		t.Fatalf("could not parse book id: %v", err)
@@ -70,8 +79,15 @@ func TestImport(t *testing.T) {
 		Password: password,
 	}
 
-	importProcess := newTestImportProcess()
-	importProcess.login(credentials)
+	importProcess, err := newTestImportProcess()
+	if err != nil {
+		t.Fatalf("Failed to setup playwright: %v", err)
+	}
+	// Login directly without spinner to avoid TTY issues in CI
+	err = importProcess.loginProvider.Login(credentials)
+	if err != nil {
+		t.Fatalf("could not login: %v", err)
+	}
 	importProcess.bookProvider = edubase.NewBookProvider(importProcess.page, bookId)
 
 	if err := importProcess.bookProvider.Open(1); err != nil {
