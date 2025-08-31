@@ -1,0 +1,32 @@
+?   	github.com/michaelbeutler/edubase-to-pdf	[no test files]
+=== RUN   TestImport
+    import_test.go:50: Integration test failed: EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set. Current values - EDUBASE_EMAIL: "", EDUBASE_PASSWORD: ""
+--- FAIL: TestImport (0.00s)
+=== RUN   TestSanitizeFilename
+--- PASS: TestSanitizeFilename (0.00s)
+FAIL
+FAIL	github.com/michaelbeutler/edubase-to-pdf/cmd	0.004s
+=== RUN   TestOpenBookAtPage1
+    book_test.go:13: Failed to setup playwright: please install the driver (v1.45.1) and browsers first: %!w(<nil>)
+--- FAIL: TestOpenBookAtPage1 (0.00s)
+=== RUN   TestGetTotalPages
+    book_test.go:47: Failed to setup playwright: please install the driver (v1.45.1) and browsers first: %!w(<nil>)
+--- FAIL: TestGetTotalPages (0.00s)
+=== RUN   TestNextPage
+    book_test.go:82: Failed to setup playwright: please install the driver (v1.45.1) and browsers first: %!w(<nil>)
+--- FAIL: TestNextPage (0.00s)
+=== RUN   TestScreenshot
+    book_test.go:125: Failed to setup playwright: please install the driver (v1.45.1) and browsers first: %!w(<nil>)
+--- FAIL: TestScreenshot (0.00s)
+=== RUN   TestGetBooks
+    library_test.go:13: Integration test failed: EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set. Current values - EDUBASE_EMAIL: "", EDUBASE_PASSWORD: ""
+--- FAIL: TestGetBooks (0.00s)
+=== RUN   TestLogin
+    login_test.go:13: Integration test failed: EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set. Current values - EDUBASE_EMAIL: "", EDUBASE_PASSWORD: ""
+--- FAIL: TestLogin (0.00s)
+=== RUN   TestLoginInvalidCredentials
+    login_test.go:45: Failed to setup playwright for invalid credentials test: please install the driver (v1.45.1) and browsers first: %!w(<nil>)
+--- FAIL: TestLoginInvalidCredentials (0.00s)
+FAIL
+FAIL	github.com/michaelbeutler/edubase-to-pdf/pkg/edubase	0.004s
+FAIL
