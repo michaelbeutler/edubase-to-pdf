@@ -6,9 +6,11 @@ import (
 )
 
 func TestLogin(t *testing.T) {
-	// Skip integration test if required environment variables are not set
-	if shouldSkipIntegrationTest() {
-		t.Skip("Skipping integration test: EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set")
+	// Check if required environment variables are set
+	email := os.Getenv("EDUBASE_EMAIL")
+	password := os.Getenv("EDUBASE_PASSWORD")
+	if email == "" || password == "" {
+		t.Fatalf("Integration test failed: EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set. Current values - EDUBASE_EMAIL: %q, EDUBASE_PASSWORD: %q", email, password)
 	}
 
 	// create a playwright.Page instance for testing
@@ -25,8 +27,8 @@ func TestLogin(t *testing.T) {
 
 	// set up test credentials
 	credentials := Credentials{
-		Email:    os.Getenv("EDUBASE_EMAIL"),
-		Password: os.Getenv("EDUBASE_PASSWORD"),
+		Email:    email,
+		Password: password,
 	}
 
 	// call the Login method with the test credentials
@@ -40,7 +42,7 @@ func TestLoginInvalidCredentials(t *testing.T) {
 	// create a playwright.Page instance for testing
 	page, browser, pw, err := setupTestPlaywright()
 	if err != nil {
-		t.Skipf("Skipping test due to Playwright setup failure: %v", err)
+		t.Fatalf("Failed to setup playwright for invalid credentials test: %v", err)
 	}
 	defer pw.Stop()
 	defer browser.Close()

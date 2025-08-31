@@ -41,13 +41,13 @@ func newTestImportProcess() *importProcess {
 }
 
 func TestImport(t *testing.T) {
-	// Skip integration test if required environment variables are not set
+	// Check if required environment variables are set
 	email := os.Getenv("EDUBASE_EMAIL")
 	password := os.Getenv("EDUBASE_PASSWORD")
 	bookIdStr := os.Getenv("EDUBASE_BOOK_ID")
 	
 	if email == "" || password == "" || bookIdStr == "" {
-		t.Skip("Skipping integration test: EDUBASE_EMAIL, EDUBASE_PASSWORD, and EDUBASE_BOOK_ID environment variables must be set")
+		t.Fatalf("Integration test failed: EDUBASE_EMAIL, EDUBASE_PASSWORD, and EDUBASE_BOOK_ID environment variables must be set. Current values - EDUBASE_EMAIL: %q, EDUBASE_PASSWORD: %q, EDUBASE_BOOK_ID: %q", email, password, bookIdStr)
 	}
 
 	if err := playwright.Install(); err != nil {

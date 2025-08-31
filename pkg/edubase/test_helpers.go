@@ -34,11 +34,3 @@ func setupTestPlaywright() (playwright.Page, playwright.Browser, *playwright.Pla
 
 	return page, browser, pw, nil
 }
-
-// shouldSkipIntegrationTest checks if integration test should be skipped
-// due to missing environment variables
-func shouldSkipIntegrationTest() bool {
-	email := os.Getenv("EDUBASE_EMAIL")
-	password := os.Getenv("EDUBASE_PASSWORD")
-	return email == "" || password == ""
-}
