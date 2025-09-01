@@ -245,9 +245,7 @@ func newImportProcess() *importProcess {
 }
 
 func (i *importProcess) login(credentials edubase.Credentials) {
-	loginSpinner := ""
-	if manualLogin {
-		loginSpinner = "login manual in open browser..."
+		loginSpinner = "login manually in open browser..."
 	} else {
 		loginSpinner = "logging in..."
 	}
