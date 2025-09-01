@@ -32,3 +32,4 @@ go.work
 *.png
 
 results.json
+results.txt

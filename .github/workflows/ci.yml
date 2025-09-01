@@ -5,6 +5,8 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      GO_VERSION: "1.23"
 
     steps:
       - name: Checkout 🛎️
@@ -12,13 +14,61 @@ jobs:
       - name: Setup Go 📦
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22.2
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
       - name: Install dependencies 📦
         run: go mod download && go mod verify
+      - name: Install Playwright 📦
+        run: |
+          echo "Installing Playwright driver..."
+          go install github.com/playwright-community/playwright-go/cmd/playwright@latest
+          echo "Installing Playwright browsers..."
+          playwright install --with-deps
+          echo "Playwright installation complete"
       - name: Test 🧪
-        run: go test ./... -json > results.json
+        run: |
+          echo "Starting tests..."
+          echo "Environment variables available:"
+          echo "- EDUBASE_EMAIL: $([ -n "$EDUBASE_EMAIL" ] && echo 'set' || echo 'not set')"
+          echo "- EDUBASE_PASSWORD: $([ -n "$EDUBASE_PASSWORD" ] && echo 'set' || echo 'not set')" 
+          echo "- EDUBASE_BOOK_ID: $([ -n "$EDUBASE_BOOK_ID" ] && echo 'set' || echo 'not set')"
+          echo ""
+          echo "Running tests in verbose mode..."
+          echo "========================================"
+          
+          # Run tests and capture both output and exit code properly
+          go test ./... -v 2>&1 | tee results.txt
+          TEST_EXIT_CODE=${PIPESTATUS[0]}
+          
+          echo "========================================"
+          echo ""
+          echo "Test execution completed with exit code: $TEST_EXIT_CODE"
+          
+          # Show summary of results
+          echo "Test Results Summary:"
+          if [ $TEST_EXIT_CODE -eq 0 ]; then
+            echo "✅ All tests passed!"
+          else
+            echo "❌ Some tests failed. Details above."
+            echo ""
+            echo "Failed tests:"
+            grep -E "^--- FAIL:" results.txt || echo "No specific test failures found in output"
+          fi
+          
+          # Save JSON results for artifact (but don't redirect main output)
+          go test ./... -v -json > results.json 2>/dev/null || true
+          
+          exit $TEST_EXIT_CODE
+        env:
+          EDUBASE_EMAIL: ${{ secrets.EDUBASE_EMAIL }}
+          EDUBASE_PASSWORD: ${{ secrets.EDUBASE_PASSWORD }}
+          EDUBASE_BOOK_ID: ${{ secrets.EDUBASE_BOOK_ID }}
+          CI: "true"
       - name: Upload results 📤
         uses: actions/upload-artifact@v4
+        if: always()  # Upload results even if tests failed
         with:
           name: test-results
-          path: results.json
+          path: |
+            results.json
+            results.txt

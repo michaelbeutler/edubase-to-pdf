@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"testing"
@@ -9,23 +10,84 @@ import (
 	"github.com/playwright-community/playwright-go"
 )
 
-func TestImport(t *testing.T) {
-	if err := playwright.Install(); err != nil {
-		t.Fatalf("could not install Playwright: %v", err)
+// newTestImportProcess creates a new import process with headless mode set based on CI environment
+func newTestImportProcess() (*importProcess, error) {
+	pw, err := playwright.Run()
+	if err != nil {
+		return nil, fmt.Errorf("failed to run playwright: %w", err)
+	}
+	
+	// Use headless mode in CI environment
+	headless := os.Getenv("CI") == "true"
+	
+	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
+		Headless: playwright.Bool(headless),
+		Timeout:  playwright.Float(float64(timeout.Milliseconds())),
+	})
+	if err != nil {
+		pw.Stop()
+		return nil, fmt.Errorf("failed to launch browser: %w", err)
+	}
+	
+	page, err := browser.NewPage(playwright.BrowserNewPageOptions{
+		Viewport: &playwright.Size{
+			Width:  *playwright.Int(width),
+			Height: *playwright.Int(height),
+		},
+	})
+	if err != nil {
+		browser.Close()
+		pw.Stop()
+		return nil, fmt.Errorf("failed to create page: %w", err)
 	}
 
-	bookId, err := strconv.Atoi(os.Getenv("EDUBASE_BOOK_ID"))
+	loginProvider := edubase.NewLoginProvider(page)
+	libraryProvider := edubase.NewLibraryProvider(page)
+
+	return &importProcess{
+		page:            page,
+		browser:         browser,
+		pw:              pw,
+		loginProvider:   loginProvider,
+		libraryProvider: libraryProvider,
+	}, nil
+}
+
+func TestImport(t *testing.T) {
+	// Check if required environment variables are set
+	email := os.Getenv("EDUBASE_EMAIL")
+	password := os.Getenv("EDUBASE_PASSWORD")
+	bookIdStr := os.Getenv("EDUBASE_BOOK_ID")
+	
+	if email == "" || password == "" {
+		t.Fatalf("Integration test failed: EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set. Current values - EDUBASE_EMAIL: %q, EDUBASE_PASSWORD: %q", email, password)
+	}
+
+	// Use default book ID if not provided (same as other tests)
+	if bookIdStr == "" {
+		bookIdStr = "58216"
+		t.Logf("EDUBASE_BOOK_ID not set, using default book ID: %s", bookIdStr)
+	}
+
+	bookId, err := strconv.Atoi(bookIdStr)
 	if err != nil {
-		t.Fatalf("could not get book id from environment")
+		t.Fatalf("could not parse book id: %v", err)
 	}
 
 	credentials := edubase.Credentials{
-		Email:    os.Getenv("EDUBASE_EMAIL"),
-		Password: os.Getenv("EDUBASE_PASSWORD"),
+		Email:    email,
+		Password: password,
 	}
 
-	importProcess := newImportProcess()
-	importProcess.login(credentials)
+	importProcess, err := newTestImportProcess()
+	if err != nil {
+		t.Fatalf("Failed to setup playwright: %v", err)
+	}
+	// Login directly without spinner to avoid TTY issues in CI
+	err = importProcess.loginProvider.Login(credentials)
+	if err != nil {
+		t.Fatalf("could not login: %v", err)
+	}
 	importProcess.bookProvider = edubase.NewBookProvider(importProcess.page, bookId)
 
 	if err := importProcess.bookProvider.Open(1); err != nil {

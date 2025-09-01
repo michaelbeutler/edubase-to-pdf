@@ -1,6 +1,6 @@
 module github.com/michaelbeutler/edubase-to-pdf
 
-go 1.22.2
+go 1.23
 
 require (
 	github.com/charmbracelet/huh v0.5.3

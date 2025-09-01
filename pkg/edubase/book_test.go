@@ -4,30 +4,16 @@ import (
 	"os"
 	"testing"
 	"time"
-
-	"github.com/playwright-community/playwright-go"
 )
 
 func TestOpenBookAtPage1(t *testing.T) {
 	// create a playwright.Page instance for testing
-	pw, err := playwright.Run()
+	page, browser, pw, err := setupTestPlaywright()
 	if err != nil {
-		t.Fatalf("failed to create playwright instance: %v", err)
+		t.Fatalf("Failed to setup playwright: %v", err)
 	}
 	defer pw.Stop()
-
-	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless: playwright.Bool(false),
-	})
-	if err != nil {
-		t.Fatalf("failed to launch browser: %v", err)
-	}
 	defer browser.Close()
-
-	page, err := browser.NewPage()
-	if err != nil {
-		t.Fatalf("failed to create new page: %v", err)
-	}
 	defer page.Close()
 
 	// create a new BookProvider instance
@@ -56,24 +42,12 @@ func TestOpenBookAtPage1(t *testing.T) {
 
 func TestGetTotalPages(t *testing.T) {
 	// create a playwright.Page instance for testing
-	pw, err := playwright.Run()
+	page, browser, pw, err := setupTestPlaywright()
 	if err != nil {
-		t.Fatalf("failed to create playwright instance: %v", err)
+		t.Fatalf("Failed to setup playwright: %v", err)
 	}
 	defer pw.Stop()
-
-	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless: playwright.Bool(false),
-	})
-	if err != nil {
-		t.Fatalf("failed to launch browser: %v", err)
-	}
 	defer browser.Close()
-
-	page, err := browser.NewPage()
-	if err != nil {
-		t.Fatalf("failed to create new page: %v", err)
-	}
 	defer page.Close()
 
 	// create a new BookProvider instance
@@ -103,24 +77,12 @@ func TestGetTotalPages(t *testing.T) {
 
 func TestNextPage(t *testing.T) {
 	// create a playwright.Page instance for testing
-	pw, err := playwright.Run()
+	page, browser, pw, err := setupTestPlaywright()
 	if err != nil {
-		t.Fatalf("failed to create playwright instance: %v", err)
+		t.Fatalf("Failed to setup playwright: %v", err)
 	}
 	defer pw.Stop()
-
-	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless: playwright.Bool(false),
-	})
-	if err != nil {
-		t.Fatalf("failed to launch browser: %v", err)
-	}
 	defer browser.Close()
-
-	page, err := browser.NewPage()
-	if err != nil {
-		t.Fatalf("failed to create new page: %v", err)
-	}
 	defer page.Close()
 
 	// create a new BookProvider instance
@@ -158,24 +120,12 @@ func TestNextPage(t *testing.T) {
 }
 func TestScreenshot(t *testing.T) {
 	// create a playwright.Page instance for testing
-	pw, err := playwright.Run()
+	page, browser, pw, err := setupTestPlaywright()
 	if err != nil {
-		t.Fatalf("failed to create playwright instance: %v", err)
+		t.Fatalf("Failed to setup playwright: %v", err)
 	}
 	defer pw.Stop()
-
-	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless: playwright.Bool(false),
-	})
-	if err != nil {
-		t.Fatalf("failed to launch browser: %v", err)
-	}
 	defer browser.Close()
-
-	page, err := browser.NewPage()
-	if err != nil {
-		t.Fatalf("failed to create new page: %v", err)
-	}
 	defer page.Close()
 
 	// create a new BookProvider instance
