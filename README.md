@@ -95,7 +95,7 @@ edubase-to-pdf import [flags]
 
 ```shell
   -d, --debug                 Debug mode. Show browser window.
-  -M  --manual                Type your credentials manually. This is useful if you use Microsoft login or don't trust the creators of this program 🪟."
+  -M, --manual                Type your credentials manually. This is useful if you use Microsoft login or don't trust the creators of this program 🪟.
   -e, --email string          Edubase email for login. 📧
   -H, --height int            Browser height in pixels; this can affect screenshot quality. (default 1440) 🔍
   -h, --help                  Help for import.
