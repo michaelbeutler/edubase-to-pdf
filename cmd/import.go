@@ -24,6 +24,7 @@ var maxPages int = -1
 var startPage int = 1
 var debug bool = false
 var imgOverwrite bool = false
+var manualLogin bool = false
 var width int = 2560
 var height int = 1440
 var pageDelay time.Duration = 500 * time.Millisecond
@@ -37,6 +38,7 @@ func init() {
 	importCmd.Flags().IntVarP(&startPage, "start-page", "s", 1, "Start page to import from the book.")
 	importCmd.Flags().BoolVarP(&imgOverwrite, "img-overwrite", "o", false, "Overwrite existing screenshots.")
 	importCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Debug mode. Show browser window.")
+	importCmd.Flags().BoolVarP(&manualLogin, "manual", "M", false, "Type your credentials manually. This is useful if you use Microsoft login.")
 	importCmd.Flags().IntVarP(&height, "height", "H", height, "Browser height in pixels this can affect the screenshot quality.")
 	importCmd.Flags().IntVarP(&width, "width", "W", width, "Browser width in pixels this can affect the screenshot quality.")
 	importCmd.Flags().DurationVarP(&pageDelay, "page-delay", "D", pageDelay, "Delay between pages in milliseconds. This is required to give the browser time to load the page.")
@@ -77,13 +79,18 @@ Contact:
 		}
 
 		// if email or password is empty, get credentials from form
-		if email == "" || password == "" {
-			c, err := edubase.GetCredentials()
-			if err != nil {
-				log.Fatalf("could not get credentials: %v", err)
-			}
+		if manualLogin {
+			fmt.Println("Manual login selected. Please complete the login in the opened browser window...")
+			fmt.Println("For closing the application, close the browser window and press Ctrl+C in this terminal...")
+		} else {
+			if email == "" || password == "" {
+				c, err := edubase.GetCredentials()
+				if err != nil {
+					log.Fatalf("could not get credentials: %v", err)
+				}
 
-			credentials = c
+				credentials = c
+			}
 		}
 
 		// login
@@ -210,7 +217,7 @@ type importProcess struct {
 func newPlaywrightPage() (playwright.Page, playwright.Browser, *playwright.Playwright) {
 	pw, _ := playwright.Run()
 	browser, _ := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless: playwright.Bool(!debug),
+		Headless: playwright.Bool(!debug && !manualLogin),
 		Timeout:  playwright.Float(float64(timeout.Milliseconds())),
 	})
 	page, _ := browser.NewPage(playwright.BrowserNewPageOptions{
@@ -238,9 +245,13 @@ func newImportProcess() *importProcess {
 }
 
 func (i *importProcess) login(credentials edubase.Credentials) {
-	err := spinner.New().Title("logging in...").
+		loginSpinner = "login manually in open browser..."
+	} else {
+		loginSpinner = "logging in..."
+	}
+	err := spinner.New().Title(loginSpinner).
 		Action(func() {
-			err := i.loginProvider.Login(credentials)
+			err := i.loginProvider.Login(credentials, manualLogin)
 			if err != nil {
 				log.Fatalf("could not login: %v", err)
 			}

@@ -30,9 +30,10 @@ func TestGetBooks(t *testing.T) {
 		Email:    email,
 		Password: password,
 	}
+	manualLogin := false
 
 	// call the Login method with the test credentials
-	err = loginProvider.Login(credentials)
+	err = loginProvider.Login(credentials, manualLogin)
 	if err != nil {
 		t.Errorf("login failed: %v", err)
 	}
