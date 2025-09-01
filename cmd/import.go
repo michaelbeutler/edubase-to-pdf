@@ -79,13 +79,18 @@ Contact:
 		}
 
 		// if email or password is empty, get credentials from form
-		if email == "" || password == "" {
-			c, err := edubase.GetCredentials()
-			if err != nil {
-				log.Fatalf("could not get credentials: %v", err)
-			}
+		if manualLogin {
+			fmt.Println("Manual login selected. Please complete the login in the opened browser window...")
+			fmt.Println("For closing the application, close the browser window and press Ctrl+C in this terminal...")
+		} else {
+			if email == "" || password == "" {
+				c, err := edubase.GetCredentials()
+				if err != nil {
+					log.Fatalf("could not get credentials: %v", err)
+				}
 
-			credentials = c
+				credentials = c
+			}
 		}
 
 		// login
@@ -212,7 +217,7 @@ type importProcess struct {
 func newPlaywrightPage() (playwright.Page, playwright.Browser, *playwright.Playwright) {
 	pw, _ := playwright.Run()
 	browser, _ := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless: playwright.Bool(!debug),
+		Headless: playwright.Bool(!debug && !manualLogin),
 		Timeout:  playwright.Float(float64(timeout.Milliseconds())),
 	})
 	page, _ := browser.NewPage(playwright.BrowserNewPageOptions{
@@ -240,7 +245,13 @@ func newImportProcess() *importProcess {
 }
 
 func (i *importProcess) login(credentials edubase.Credentials) {
-	err := spinner.New().Title("logging in...").
+	loginSpinner := ""
+	if manualLogin {
+		loginSpinner = "login manual in open browser..."
+	} else {
+		loginSpinner = "logging in..."
+	}
+	err := spinner.New().Title(loginSpinner).
 		Action(func() {
 			err := i.loginProvider.Login(credentials, manualLogin)
 			if err != nil {

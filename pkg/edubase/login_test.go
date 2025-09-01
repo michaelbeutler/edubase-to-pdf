@@ -37,9 +37,10 @@ func TestLogin(t *testing.T) {
 		Email:    os.Getenv("EDUBASE_EMAIL"),
 		Password: os.Getenv("EDUBASE_PASSWORD"),
 	}
+	manualLogin := false
 
 	// call the Login method with the test credentials
-	err = loginProvider.Login(credentials)
+	err = loginProvider.Login(credentials, manualLogin)
 	if err != nil {
 		t.Errorf("login failed: %v", err)
 	}
@@ -77,7 +78,7 @@ func TestLoginInvalidCredentials(t *testing.T) {
 	}
 
 	// call the Login method with the test credentials
-	err = loginProvider.Login(credentials)
+	err = loginProvider.Login(credentials, false)
 	if err == nil {
 		t.Errorf("login with invalid credentials should have failed")
 	}

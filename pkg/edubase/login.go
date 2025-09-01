@@ -55,7 +55,6 @@ func (l *LoginProvider) Login(credentials Credentials, manualLogin bool) error {
 	// manual login
 
 	if manualLogin {
-		fmt.Println("Please complete the login in the opened browser window...")
 		// wait for user to complete login
 		if err := l.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
 			State: playwright.LoadStateNetworkidle,
