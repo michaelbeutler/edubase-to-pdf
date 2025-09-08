@@ -50,7 +50,7 @@ func (b *BookProvider) GetTotalPages() (int, error) {
 	totalPagesString := re.FindAllString(rawTotalPages, -1)
 
 	if len(totalPagesString) == 0 {
-		return 0, fmt.Errorf("could not find max page number")
+		return 0, fmt.Errorf("could not find max page number: %s", rawTotalPages)
 	}
 
 	totalPages, err := strconv.Atoi(totalPagesString[0])
