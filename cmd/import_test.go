@@ -16,10 +16,10 @@ func newTestImportProcess() (*importProcess, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to run playwright: %w", err)
 	}
-	
+
 	// Use headless mode in CI environment
 	headless := os.Getenv("CI") == "true"
-	
+
 	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
 		Headless: playwright.Bool(headless),
 		Timeout:  playwright.Float(float64(timeout.Milliseconds())),
@@ -28,7 +28,7 @@ func newTestImportProcess() (*importProcess, error) {
 		pw.Stop()
 		return nil, fmt.Errorf("failed to launch browser: %w", err)
 	}
-	
+
 	page, err := browser.NewPage(playwright.BrowserNewPageOptions{
 		Viewport: &playwright.Size{
 			Width:  *playwright.Int(width),
@@ -58,7 +58,7 @@ func TestImport(t *testing.T) {
 	email := os.Getenv("EDUBASE_EMAIL")
 	password := os.Getenv("EDUBASE_PASSWORD")
 	bookIdStr := os.Getenv("EDUBASE_BOOK_ID")
-	
+
 	if email == "" || password == "" {
 		t.Fatalf("Integration test failed: EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set. Current values - EDUBASE_EMAIL: %q, EDUBASE_PASSWORD: %q", email, password)
 	}
@@ -84,7 +84,7 @@ func TestImport(t *testing.T) {
 		t.Fatalf("Failed to setup playwright: %v", err)
 	}
 	// Login directly without spinner to avoid TTY issues in CI
-	err = importProcess.loginProvider.Login(credentials)
+	err = importProcess.loginProvider.Login(credentials, false)
 	if err != nil {
 		t.Fatalf("could not login: %v", err)
 	}

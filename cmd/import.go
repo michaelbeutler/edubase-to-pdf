@@ -245,10 +245,11 @@ func newImportProcess() *importProcess {
 }
 
 func (i *importProcess) login(credentials edubase.Credentials) {
+	loginSpinner := "logging in..."
+	if (credentials.Email == "" || credentials.Password == "") && !manualLogin {
 		loginSpinner = "login manually in open browser..."
-	} else {
-		loginSpinner = "logging in..."
 	}
+
 	err := spinner.New().Title(loginSpinner).
 		Action(func() {
 			err := i.loginProvider.Login(credentials, manualLogin)
