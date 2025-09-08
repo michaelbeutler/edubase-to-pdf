@@ -51,9 +51,6 @@ func (l *LoginProvider) Login(credentials Credentials, manualLogin bool) error {
 	if err := l.page.Context().ClearCookies(); err != nil {
 		return fmt.Errorf("could not clear cookies: %v", err)
 	}
-	if _, err := l.page.Evaluate(`() => { localStorage.clear(); sessionStorage.clear(); }`); err != nil {
-		return fmt.Errorf("could not clear local storage: %v", err)
-	}
 
 	// go to login page
 	if _, err := l.page.Goto(l.baseURL); err != nil {
