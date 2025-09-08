@@ -83,31 +83,31 @@ archives:
 #     test: |
 #       system "#{bin}/edubase-to-pdf --version"
 
-chocolateys:
-  - name: michaelbeutler-edubase-to-pdf
-    owners: michaelbeutler
-    title: michaelbeutler edubase-to-pdf
-    authors: michaelbeutler
-    project_url: https://docs.michaelbeutler.com
-    url_template: "https://github.com/michaelbeutler/edubase-to-pdf/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    icon_url: "https://avatars.githubusercontent.com/u/144101217?s=200&v=4"
-    copyright: 2024 michaelbeutler
-    license_url: https://github.com/michaelbeutler/edubase-to-pdf/blob/main/LICENSE
-    require_license_acceptance: false
-    project_source_url: https://github.com/michaelbeutler/edubase-to-pdf
-    package_source_url: https://github.com/michaelbeutler/edubase-to-pdf
-    docs_url: https://docs.michaelbeutler.com
-    bug_tracker_url: https://github.com/michaelbeutler/edubase-to-pdf/issues
-    tags: "lora michaelbeutler edubase-to-pdf"
-    summary: michaelbeutler edubase-to-pdf reference implementation.
-    description: |
-      {{ .ProjectName }} installer package.
-      michaelbeutler edubase-to-pdf reference implementation.
-    release_notes: "https://github.com/michaelbeutler/edubase-to-pdf/releases/tag/v{{ .Version }}"
-    api_key: "{{ .Env.CHOCO_API_KEY }}"
-    source_repo: "https://push.chocolatey.org/"
-    skip_publish: false
-    goamd64: v1
+# chocolateys:
+#   - name: michaelbeutler-edubase-to-pdf
+#     owners: michaelbeutler
+#     title: michaelbeutler edubase-to-pdf
+#     authors: michaelbeutler
+#     project_url: https://docs.michaelbeutler.com
+#     url_template: "https://github.com/michaelbeutler/edubase-to-pdf/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+#     icon_url: "https://avatars.githubusercontent.com/u/144101217?s=200&v=4"
+#     copyright: 2024 michaelbeutler
+#     license_url: https://github.com/michaelbeutler/edubase-to-pdf/blob/main/LICENSE
+#     require_license_acceptance: false
+#     project_source_url: https://github.com/michaelbeutler/edubase-to-pdf
+#     package_source_url: https://github.com/michaelbeutler/edubase-to-pdf
+#     docs_url: https://docs.michaelbeutler.com
+#     bug_tracker_url: https://github.com/michaelbeutler/edubase-to-pdf/issues
+#     tags: "lora michaelbeutler edubase-to-pdf"
+#     summary: michaelbeutler edubase-to-pdf reference implementation.
+#     description: |
+#       {{ .ProjectName }} installer package.
+#       michaelbeutler edubase-to-pdf reference implementation.
+#     release_notes: "https://github.com/michaelbeutler/edubase-to-pdf/releases/tag/v{{ .Version }}"
+#     api_key: "{{ .Env.CHOCO_API_KEY }}"
+#     source_repo: "https://push.chocolatey.org/"
+#     skip_publish: false
+#     goamd64: v1
 
 dockers:
   - use: buildx
