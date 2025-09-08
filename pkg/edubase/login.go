@@ -47,13 +47,33 @@ func GetCredentials() (Credentials, error) {
 }
 
 func (l *LoginProvider) Login(credentials Credentials, manualLogin bool) error {
+	// clear all cookies and local storage
+	if err := l.page.Context().ClearCookies(); err != nil {
+		return fmt.Errorf("could not clear cookies: %v", err)
+	}
+	if _, err := l.page.Evaluate(`() => { localStorage.clear(); sessionStorage.clear(); }`); err != nil {
+		return fmt.Errorf("could not clear local storage: %v", err)
+	}
+
 	// go to login page
-	if _, err := l.page.Goto(fmt.Sprintf("%s/#promo?popup=login", l.baseURL)); err != nil {
-		return fmt.Errorf("could not go to login page: %v", err)
+	if _, err := l.page.Goto(l.baseURL); err != nil {
+		return fmt.Errorf("could not go to base page: %v", err)
+	}
+
+	// wait for page to load
+	if err := l.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(15000),
+	}); err != nil {
+		return fmt.Errorf("could not wait for navigation: %v", err)
+	}
+
+	// press login button
+	if err := l.page.Locator("button[data-open='loginModal']").Click(); err != nil {
+		return fmt.Errorf("could not click login button: %v", err)
 	}
 
 	// manual login
-
 	if manualLogin {
 		// wait for user to complete login
 		if err := l.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
