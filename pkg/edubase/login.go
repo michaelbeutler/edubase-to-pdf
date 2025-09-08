@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/charmbracelet/huh"
+	"bufio"
+	"os"
+	"strings"
+
 	"github.com/playwright-community/playwright-go"
 )
 
@@ -32,16 +35,21 @@ type Credentials struct {
 func GetCredentials() (Credentials, error) {
 	credentials := Credentials{}
 
-	loginForm := huh.NewForm(
-		huh.NewGroup(
-			huh.NewInput().Title("Email").Value(&credentials.Email),
-			huh.NewInput().Title("Password").Value(&credentials.Password).EchoMode(huh.EchoModePassword),
-		),
-	)
+	reader := bufio.NewReader(os.Stdin)
 
-	if err := loginForm.Run(); err != nil {
+	fmt.Print("Email: ")
+	email, err := reader.ReadString('\n')
+	if err != nil {
 		return Credentials{}, err
 	}
+	credentials.Email = strings.TrimSpace(email)
+
+	fmt.Print("Password: ")
+	password, err := reader.ReadString('\n')
+	if err != nil {
+		return Credentials{}, err
+	}
+	credentials.Password = strings.TrimSpace(password)
 
 	return credentials, nil
 }
