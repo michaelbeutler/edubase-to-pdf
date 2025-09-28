@@ -1,91 +1,90 @@
 # Edubase-to-PDF CLI Tool 🎓📚
 
-## Description 📚🖨📑
-The `edubase-to-pdf` CLI tool is designed to help users securely download and archive e-books from Edubase as PDF files. 📖🔒 It allows users to access their books even if the Edubase reader gets discontinued, ensuring continued access to educational resources. Please note that this tool is intended strictly for personal use and archiving purposes. It should not be used for any illegal activities, including piracy. 🚫🏴‍☠️
-
+## Beschreibung 📚🖨📑
+Das `edubase-to-pdf` CLI-Tool wurde entwickelt, um Nutzer:innen beim sicheren Herunterladen und Archivieren von E-Books aus Edubase als PDF-Dateien zu unterstützen. 📖🔒 Damit können Bücher auch dann noch genutzt werden, falls der Edubase-Reader eingestellt wird – so bleibt der Zugang zu Bildungsressourcen erhalten. Bitte beachte, dass dieses Tool ausschließlich für den **persönlichen Gebrauch und Archivierungszwecke** gedacht ist. Es darf nicht für illegale Aktivitäten, einschließlich Piraterie, genutzt werden. 🚫🏴‍☠️
 
 ## 🎬 Demo
 
-Check out this demo to see edubase-to-pdf in action! 👇
+Schau dir diese Demo an, um edubase-to-pdf in Aktion zu sehen! 👇
 
 ![Demo](demo.gif)
 
-## 🌟 Features
+## 🌟 Funktionen
 
-- 🔍 **Easy**: Use one single tool to download all your eBooks.
-- 📚 **PDF**: Save your eBooks as PDF files for easy access.
-- 📧 **Secure**: Log in securely using your Edubase email and password.
-- ➡ **Customizable**: Choose the starting page and the number of pages to import.
-- 📂 **Temporary Directory**: Specify a temporary directory for screenshots.
-- ⏳ **Page Delay**: Set a delay between pages to give the browser time to load.
-- 🔎 **Browser Size**: Customize the browser width and height for better screenshot quality.
-- 😵‍💫 **Lightweight**: Single binary, no bloat like Python scripts. 😉
+- 🔍 **Einfach**: Nutze ein einziges Tool, um alle deine eBooks herunterzuladen.  
+- 📚 **PDF**: Speichere deine eBooks als PDF-Dateien für leichten Zugriff.  
+- 📧 **Sicher**: Melde dich mit deiner Edubase-E-Mail und deinem Passwort sicher an.  
+- ➡ **Anpassbar**: Wähle die Startseite und die Anzahl der zu importierenden Seiten.  
+- 📂 **Temporäres Verzeichnis**: Gib ein temporäres Verzeichnis für Screenshots an.  
+- ⏳ **Seiten-Verzögerung**: Lege eine Wartezeit zwischen den Seiten fest, damit der Browser laden kann.  
+- 🔎 **Browsergröße**: Passe Breite und Höhe des Browsers an, um die Screenshot-Qualität zu verbessern.  
+- 😵‍💫 **Leichtgewichtig**: Einzelne ausführbare Datei, kein Ballast wie Python-Skripte. 😉  
 
 ## 📦 Installation
 
-### 🖼️ Installation Video
-For easier installation and usage, we made a video:
+### 🖼️ Installationsvideo
+Für eine leichtere Installation und Nutzung gibt es ein Video:  
 
-[YouTube Edubase-to-PDF installation Tutorial](https://youtu.be/BLNL_C_Bdbw)
+[YouTube Edubase-to-PDF Installations-Tutorial](https://youtu.be/BLNL_C_Bdbw)
 
 ### 🔧 Binaries
 
-You can install the edubase-to-pdf binary easily using the following command:
+Installiere die `edubase-to-pdf`-Binary einfach mit folgendem Befehl:  
 
 ```zsh
-# This will install the binary at $(go env GOPATH)/bin/edubase-to-pdf
+# Dies installiert die Binary unter $(go env GOPATH)/bin/edubase-to-pdf
 curl -sSfL https://raw.githubusercontent.com/michaelbeutler/edubase-to-pdf/main/install.sh | sh -s -- -b $(go env GOPATH)/bin
 
-# ✅ Verify the installation by checking the help
+# ✅ Überprüfe die Installation mit:
 edubase-to-pdf --help
 ```
 
 ### 🖥️ Windows
 
-For Windows users, you can install the edubase-to-pdf binary using Chocolatey:
+Für Windows-Nutzer:innen kann die Binary über Chocolatey installiert werden:  
 
 ```powershell
-# Install using Chocolatey
+# Installation mit Chocolatey
 choco install michaelbeutler-edubase-to-pdf --version=2.0.3
 
-# ✅ Verify the installation by checking the help
+# ✅ Überprüfe die Installation mit:
 edubase-to-pdf --help
 ```
 
 ### 🐳 Docker
 
-You can also run the edubase-to-pdf using Docker:
+Alternativ lässt sich `edubase-to-pdf` auch mit Docker ausführen:  
 
 ```sh
-# Pull the latest Docker image
+# Neuestes Docker-Image ziehen
 docker pull ghcr.io/michaelbeutler/edubase-to-pdf
 
-# Run the Docker container
+# Container starten
 docker run -it ghcr.io/michaelbeutler/edubase-to-pdf edubase-to-pdf --help
 
-# Run the Docker container to import a book
+# Container starten, um ein Buch zu importieren
 docker run -v ./ ghcr.io/michaelbeutler/edubase-to-pdf edubase-to-pdf import
 ```
 
-## Example 🧾👆
+## Beispiel 🧾👆
 
-Here is an example of how to use the tool:
+So kannst du das Tool verwenden:  
 
 ```shell
-edubase-to-pdf import -e your_email@example.com -p your_password -s 2 -m 10
+edubase-to-pdf import -e deine_email@example.com -p dein_passwort -s 2 -m 10
 ```
 
-In this example, the tool signs in to Edubase using the provided email and password. It then starts importing from page 2 and imports a maximum of 10 pages. The resulting PDF will be saved in the current directory. 🎉📚
+In diesem Beispiel meldet sich das Tool mit der angegebenen E-Mail und dem Passwort bei Edubase an. Es beginnt ab Seite 2 und importiert maximal 10 Seiten. Das Ergebnis wird als PDF im aktuellen Verzeichnis gespeichert. 🎉📚
 
-## Contact 🤔💬
+## Kontakt 🤔💬
 
-If you encounter any issues or have any questions, please feel free to open an issue on our GitHub repository:
+Wenn du auf Probleme stößt oder Fragen hast, eröffne gerne ein Issue im GitHub-Repository:  
 
 [github.com/michaelbeutler/edubase-to-pdf/issues](https://github.com/michaelbeutler/edubase-to-pdf/issues)
 
-We value your feedback and will do our best to assist you. 👍📧
+Dein Feedback ist willkommen – wir helfen dir so gut wie möglich. 👍📧
 
-## Usage 💻⌨
+## Verwendung 💻⌨
 
 ```shell
 edubase-to-pdf import [flags]
@@ -94,28 +93,31 @@ edubase-to-pdf import [flags]
 ## Flags 🚩
 
 ```shell
-  -d, --debug                 Debug mode. Show browser window.
-  -M, --manual                Type your credentials manually. This is useful if you use Microsoft login or don't trust the creators of this program 🪟.
-  -e, --email string          Edubase email for login. 📧
-  -H, --height int            Browser height in pixels; this can affect screenshot quality. (default 1440) 🔍
-  -h, --help                  Help for import.
-  -m, --max-pages int         Maximum pages to import from the book. (default -1) 🔝
-  -o  --img-overwrite         Overwrite existing screenshots. 🖼️
-  -D, --page-delay duration   Delay between pages in milliseconds. This is required to give the browser time to load the page. (default 500ms) ⏳
-  -p, --password string       Edubase password for login. 🔑
-  -s, --start-page int        Start page to import from the book. (default 1) ➡
-  -t, --temp string           Temporary directory for screenshots; these will be used to generate the pdf. (default "screenshots") 📂
-  -W, --width int             Browser width in pixels; this can affect screenshot quality. (default 2560) 🔎
-  -T, --timeout duration      Maximum time the app can take to download all pages. (increase this value for large books, default 5 min)
+  -d, --debug                 Debug-Modus. Browserfenster anzeigen.
+  -M, --manual                Zugangsdaten manuell eingeben. Nützlich, wenn du Microsoft-Login nutzt oder den Entwickler:innen nicht vertraust 🪟.
+  -e, --email string          Edubase-E-Mail für den Login. 📧
+  -H, --height int            Browserhöhe in Pixeln; kann die Screenshot-Qualität beeinflussen. (Standard 1440) 🔍
+  -h, --help                  Hilfe für import.
+  -m, --max-pages int         Maximale Seitenzahl, die aus dem Buch importiert werden soll. (Standard -1) 🔝
+  -o  --img-overwrite         Vorhandene Screenshots überschreiben. 🖼️
+  -D, --page-delay duration   Verzögerung zwischen den Seiten in Millisekunden. Nötig, damit der Browser laden kann. (Standard 500ms) ⏳
+  -p, --password string       Edubase-Passwort für den Login. 🔑
+  -s, --start-page int        Startseite für den Import. (Standard 1) ➡
+  -t, --temp string           Temporäres Verzeichnis für Screenshots, die zur PDF-Erstellung verwendet werden. (Standard "screenshots") 📂
+  -W, --width int             Browserbreite in Pixeln; kann die Screenshot-Qualität beeinflussen. (Standard 2560) 🔎
+  -T, --timeout duration      Maximale Zeit, die die App zum Download aller Seiten benötigt. (Für große Bücher erhöhen; Standard 5 Min.)
 ```
 
-## Alternatives 🔄📚
+## Alternativen 🔄📚
 
-- https://github.com/rtfmkiesel/edubase-downloader
-- feel free to open a PR to add more alternatives
+- https://github.com/rtfmkiesel/edubase-downloader  
+- gerne Pull Request eröffnen, um weitere Alternativen hinzuzufügen  
 
-## Legal Disclaimer ⚖️
+## Rechtlicher Hinweis ⚖️
 
-**Please note that the `edubase-to-pdf` CLI tool is not affiliated with Edubase and should be used responsibly and within the bounds of the law.** This tool is intended solely for personal use, archiving purposes, and accessing books in compliance with the terms and conditions set by Edubase. The tool should not be used to infringe upon the copyrights or intellectual property rights of any individual or organization. The developer of this tool disclaims any liability for any misuse or illegal activities performed with it. Users are solely responsible for their actions while using this tool. 🚫👮‍♂️
+**Bitte beachte: Das `edubase-to-pdf` CLI-Tool steht in keiner Verbindung zu Edubase und muss verantwortungsvoll und im Rahmen der gesetzlichen Bestimmungen genutzt werden.**  
+Es dient ausschließlich dem persönlichen Gebrauch, zur Archivierung und zum Zugriff auf Bücher im Einklang mit den Nutzungsbedingungen von Edubase.  
 
-Remember to respect the rights of authors and publishers by using this tool responsibly and legally. Happy reading! 📚😊
+Das Tool darf nicht zur Verletzung von Urheber- oder geistigen Eigentumsrechten verwendet werden. Der Entwickler übernimmt keinerlei Haftung für Missbrauch oder illegale Aktivitäten. Die Verantwortung liegt allein bei den Nutzer:innen. 🚫👮‍♂️  
+
+Denke daran, die Rechte von Autor:innen und Verlagen zu respektieren – nutze das Tool verantwortungsbewusst und legal. Viel Spaß beim Lesen! 📚😊  
