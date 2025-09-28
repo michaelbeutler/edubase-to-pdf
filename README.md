@@ -94,7 +94,7 @@ edubase-to-pdf import [flags]
 
 ```shell
   -d, --debug                 Debug-Modus. Browserfenster anzeigen.
-  -M  --manual                Zugangsdaten manuell eingeben. Nützlich, wenn du Microsoft-Login nutzt oder den Entwickler:innen nicht vertraust 🪟.
+  -M, --manual                Zugangsdaten manuell eingeben. Nützlich, wenn du Microsoft-Login nutzt oder den Entwickler:innen nicht vertraust 🪟.
   -e, --email string          Edubase-E-Mail für den Login. 📧
   -H, --height int            Browserhöhe in Pixeln; kann die Screenshot-Qualität beeinflussen. (Standard 1440) 🔍
   -h, --help                  Hilfe für import.
