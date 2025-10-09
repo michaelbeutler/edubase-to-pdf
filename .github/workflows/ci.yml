@@ -64,6 +64,9 @@ jobs:
           EDUBASE_PASSWORD: ${{ secrets.EDUBASE_PASSWORD }}
           EDUBASE_BOOK_ID: ${{ secrets.EDUBASE_BOOK_ID }}
           CI: "true"
+          # Playwright-specific environment variables for CI
+          DISPLAY: ":99"
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
       - name: Upload results 📤
         uses: actions/upload-artifact@v4
         if: always()  # Upload results even if tests failed

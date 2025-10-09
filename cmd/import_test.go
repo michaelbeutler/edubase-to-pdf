@@ -20,10 +20,30 @@ func newTestImportProcess() (*importProcess, error) {
 	// Use headless mode in CI environment
 	headless := os.Getenv("CI") == "true"
 
-	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless: playwright.Bool(headless),
-		Timeout:  playwright.Float(float64(timeout.Milliseconds())),
-	})
+	// Additional browser launch options for CI environments
+	var launchOptions playwright.BrowserTypeLaunchOptions
+	if headless {
+		// CI-specific options for better stability
+		launchOptions = playwright.BrowserTypeLaunchOptions{
+			Headless: playwright.Bool(true),
+			Timeout:  playwright.Float(float64(timeout.Milliseconds())),
+			Args: []string{
+				"--no-sandbox",
+				"--disable-setuid-sandbox",
+				"--disable-dev-shm-usage",
+				"--disable-web-security",
+				"--disable-features=VizDisplayCompositor",
+			},
+		}
+	} else {
+		// Local development options
+		launchOptions = playwright.BrowserTypeLaunchOptions{
+			Headless: playwright.Bool(false),
+			Timeout:  playwright.Float(float64(timeout.Milliseconds())),
+		}
+	}
+
+	browser, err := pw.Chromium.Launch(launchOptions)
 	if err != nil {
 		pw.Stop()
 		return nil, fmt.Errorf("failed to launch browser: %w", err)
