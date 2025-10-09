@@ -80,7 +80,7 @@ func TestImport(t *testing.T) {
 	bookIdStr := os.Getenv("EDUBASE_BOOK_ID")
 
 	if email == "" || password == "" {
-		t.Fatalf("Integration test failed: EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set. Current values - EDUBASE_EMAIL: %q, EDUBASE_PASSWORD: %q", email, password)
+		t.Skipf("Skipping integration test: EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set. Current values - EDUBASE_EMAIL: %q, EDUBASE_PASSWORD: %q", email, password)
 	}
 
 	// Use default book ID if not provided (same as other tests)

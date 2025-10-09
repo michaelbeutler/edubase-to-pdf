@@ -54,3 +54,36 @@ func setupTestPlaywright() (playwright.Page, playwright.Browser, *playwright.Pla
 
 	return page, browser, pw, nil
 }
+
+// setupTestPlaywrightWithLogin creates a playwright instance with authentication
+// This should be used for tests that need authenticated access to edubase
+func setupTestPlaywrightWithLogin() (playwright.Page, playwright.Browser, *playwright.Playwright, error) {
+	// Check if required environment variables are set
+	email := os.Getenv("EDUBASE_EMAIL")
+	password := os.Getenv("EDUBASE_PASSWORD")
+	if email == "" || password == "" {
+		return nil, nil, nil, fmt.Errorf("EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set for authenticated tests")
+	}
+
+	// Setup playwright
+	page, browser, pw, err := setupTestPlaywright()
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to setup playwright: %w", err)
+	}
+
+	// Perform login
+	loginProvider := NewLoginProvider(page)
+	credentials := Credentials{
+		Email:    email,
+		Password: password,
+	}
+
+	if err := loginProvider.Login(credentials, false); err != nil {
+		page.Close()
+		browser.Close()
+		pw.Stop()
+		return nil, nil, nil, fmt.Errorf("failed to login: %w", err)
+	}
+
+	return page, browser, pw, nil
+}

@@ -10,7 +10,7 @@ func TestLogin(t *testing.T) {
 	email := os.Getenv("EDUBASE_EMAIL")
 	password := os.Getenv("EDUBASE_PASSWORD")
 	if email == "" || password == "" {
-		t.Fatalf("Integration test failed: EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set. Current values - EDUBASE_EMAIL: %q, EDUBASE_PASSWORD: %q", email, password)
+		t.Skipf("Skipping integration test: EDUBASE_EMAIL and EDUBASE_PASSWORD environment variables must be set. Current values - EDUBASE_EMAIL: %q, EDUBASE_PASSWORD: %q", email, password)
 	}
 
 	// create a playwright.Page instance for testing
