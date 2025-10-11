@@ -169,6 +169,7 @@ Contact:
 			filename := fmt.Sprintf("%s/%d_%d.jpeg", screenshotDir, book.Id, i)
 			// Generate PDF and append
 			pdfcpu.ImportImagesFile([]string{filename}, fmt.Sprintf("%s.pdf", book.Title), nil, model.NewDefaultConfiguration())
+			time.Sleep(pageDelay)
 			barImgtoPdf.Add(1)
 		}
 
