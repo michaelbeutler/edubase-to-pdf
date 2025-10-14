@@ -45,7 +45,12 @@ func setupTestPlaywright() (playwright.Page, playwright.Browser, *playwright.Pla
 		return nil, nil, nil, fmt.Errorf("failed to launch browser: %w", err)
 	}
 
-	page, err := browser.NewPage()
+	page, err := browser.NewPage(playwright.BrowserNewPageOptions{
+		Viewport: &playwright.Size{
+			Width:  1920,
+			Height: 1080,
+		},
+	})
 	if err != nil {
 		browser.Close()
 		pw.Stop()
