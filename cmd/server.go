@@ -21,15 +21,35 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	// Server configuration defaults
+	defaultServerPort = 8080
+	defaultServerHost = "0.0.0.0"
+
+	// HTTP server timeouts
+	serverReadTimeout     = 15 * time.Second
+	serverWriteTimeout    = 5 * time.Minute
+	serverIdleTimeout     = 60 * time.Second
+	serverShutdownTimeout = 30 * time.Second
+
+	// Browser configuration
+	browserTimeout    = 5 * time.Minute
+	browserWidth      = 2560
+	browserHeight     = 1440
+	screenshotDelay   = 500 * time.Millisecond
+
+	// Temp directory prefix
+	tempDirPrefix = "edubase-download-*"
+)
+
 var (
-	serverPort    int
-	serverHost    string
-	serverTimeout = 5 * time.Minute // Default timeout for browser operations
+	serverPort int
+	serverHost string
 )
 
 func init() {
-	serverCmd.Flags().IntVarP(&serverPort, "port", "P", 8080, "Port for the HTTP server")
-	serverCmd.Flags().StringVarP(&serverHost, "host", "H", "0.0.0.0", "Host address for the HTTP server")
+	serverCmd.Flags().IntVarP(&serverPort, "port", "P", defaultServerPort, "Port for the HTTP server")
+	serverCmd.Flags().StringVarP(&serverHost, "host", "H", defaultServerHost, "Host address for the HTTP server")
 
 	rootCmd.AddCommand(serverCmd)
 }
@@ -102,9 +122,9 @@ func newHTTPServer(host string, port int) *httpServer {
 		server: &http.Server{
 			Addr:         fmt.Sprintf("%s:%d", host, port),
 			Handler:      mux,
-			ReadTimeout:  15 * time.Second,
-			WriteTimeout: 5 * time.Minute, // Long timeout for PDF generation
-			IdleTimeout:  60 * time.Second,
+			ReadTimeout:  serverReadTimeout,
+			WriteTimeout: serverWriteTimeout,
+			IdleTimeout:  serverIdleTimeout,
 		},
 	}
 
@@ -131,7 +151,7 @@ func (s *httpServer) start() {
 	<-stop
 	log.Println("Shutting down server...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), serverShutdownTimeout)
 	defer cancel()
 
 	if err := s.server.Shutdown(ctx); err != nil {
@@ -237,7 +257,7 @@ func (s *httpServer) processDownload(w http.ResponseWriter, req *DownloadRequest
 
 // createTempDir creates a temporary directory for screenshots
 func (s *httpServer) createTempDir() (string, error) {
-	return os.MkdirTemp("", "edubase-download-*")
+	return os.MkdirTemp("", tempDirPrefix)
 }
 
 // setupBrowser initializes playwright and creates a browser instance
@@ -249,7 +269,7 @@ func (s *httpServer) setupBrowser() (*playwright.Playwright, playwright.Browser,
 
 	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
 		Headless: playwright.Bool(true),
-		Timeout:  playwright.Float(float64(serverTimeout.Milliseconds())),
+		Timeout:  playwright.Float(float64(browserTimeout.Milliseconds())),
 	})
 	if err != nil {
 		pw.Stop()
@@ -258,8 +278,8 @@ func (s *httpServer) setupBrowser() (*playwright.Playwright, playwright.Browser,
 
 	page, err := browser.NewPage(playwright.BrowserNewPageOptions{
 		Viewport: &playwright.Size{
-			Width:  *playwright.Int(2560),
-			Height: *playwright.Int(1440),
+			Width:  *playwright.Int(browserWidth),
+			Height: *playwright.Int(browserHeight),
 		},
 	})
 	if err != nil {
@@ -314,7 +334,7 @@ func (s *httpServer) downloadPages(page playwright.Page, req *DownloadRequest, t
 	for i := req.StartPage; i <= (req.StartPage-1)+pagesToDownload; i++ {
 		filename := filepath.Join(tempDir, fmt.Sprintf("page_%d.jpeg", i))
 		
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(screenshotDelay)
 		if err := bookProvider.Screenshot(filename); err != nil {
 			return 0, fmt.Errorf("failed to take screenshot: %w", err)
 		}
