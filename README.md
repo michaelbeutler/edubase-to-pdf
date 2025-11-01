@@ -18,7 +18,8 @@ Schau dir diese Demo an, um edubase-to-pdf in Aktion zu sehen! 👇
 - 📂 **Temporäres Verzeichnis**: Gib ein temporäres Verzeichnis für Screenshots an.  
 - ⏳ **Seiten-Verzögerung**: Lege eine Wartezeit zwischen den Seiten fest, damit der Browser laden kann.  
 - 🔎 **Browsergröße**: Passe Breite und Höhe des Browsers an, um die Screenshot-Qualität zu verbessern.  
-- 😵‍💫 **Leichtgewichtig**: Einzelne ausführbare Datei, kein Ballast wie Python-Skripte. 😉  
+- 😵‍💫 **Leichtgewichtig**: Einzelne ausführbare Datei, kein Ballast wie Python-Skripte. 😉
+- 🌐 **HTTP Server**: Stelle einen HTTP API Server bereit für automatisierte PDF-Downloads.  
 
 ## 📦 Installation
 
@@ -86,11 +87,46 @@ Dein Feedback ist willkommen – wir helfen dir so gut wie möglich. 👍📧
 
 ## Verwendung 💻⌨
 
+### Import-Befehl (CLI)
+
 ```shell
 edubase-to-pdf import [flags]
 ```
 
+### HTTP Server
+
+Starte einen HTTP Server für automatisierte PDF-Downloads:
+
+```shell
+# Server mit Standardeinstellungen starten (Port 8080)
+edubase-to-pdf server
+
+# Server mit benutzerdefinierten Port starten
+edubase-to-pdf server --port 9090
+
+# Detaillierte API-Dokumentation
+# Siehe API.md für vollständige Dokumentation
+```
+
+**HTTP API Beispiel:**
+```bash
+curl -X POST http://localhost:8080/download \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "deine_email@example.com",
+    "password": "dein_passwort",
+    "book_id": 12345,
+    "start_page": 1,
+    "max_pages": -1
+  }' \
+  --output buch.pdf
+```
+
+Für die vollständige API-Dokumentation siehe [API.md](API.md).
+
 ## Flags 🚩
+
+### Import Flags
 
 ```shell
   -d, --debug                 Debug-Modus. Browserfenster anzeigen.
@@ -106,6 +142,14 @@ edubase-to-pdf import [flags]
   -t, --temp string           Temporäres Verzeichnis für Screenshots, die zur PDF-Erstellung verwendet werden. (Standard "screenshots") 📂
   -W, --width int             Browserbreite in Pixeln; kann die Screenshot-Qualität beeinflussen. (Standard 2560) 🔎
   -T, --timeout duration      Maximale Zeit, die die App zum Download aller Seiten benötigt. (Für große Bücher erhöhen; Standard 5 Min.)
+```
+
+### Server Flags
+
+```shell
+  -h, --help          Hilfe für server
+  -H, --host string   Host-Adresse für den HTTP-Server (Standard "0.0.0.0")
+  -P, --port int      Port für den HTTP-Server (Standard 8080)
 ```
 
 ## Alternativen 🔄📚

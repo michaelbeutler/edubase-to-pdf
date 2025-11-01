@@ -1,0 +1,794 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>cmd: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/michaelbeutler/edubase-to-pdf/cmd/import.go (17.0%)</option>
+				
+				<option value="file1">github.com/michaelbeutler/edubase-to-pdf/cmd/root.go (0.0%)</option>
+				
+				<option value="file2">github.com/michaelbeutler/edubase-to-pdf/cmd/server.go (52.2%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package cmd
+
+import (
+        "fmt"
+        "log"
+        "os"
+        "strings"
+        "time"
+
+        "github.com/charmbracelet/huh"
+        "github.com/charmbracelet/huh/spinner"
+        "github.com/michaelbeutler/edubase-to-pdf/pkg/edubase"
+        pdfcpu "github.com/pdfcpu/pdfcpu/pkg/api"
+        "github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
+        "github.com/playwright-community/playwright-go"
+        "github.com/schollz/progressbar/v3"
+        "github.com/spf13/cobra"
+)
+
+var screenshotDir string = "screenshots"
+var email string = ""
+var password string = ""
+var maxPages int = -1
+var startPage int = 1
+var debug bool = false
+var imgOverwrite bool = false
+var manualLogin bool = false
+var width int = 2560
+var height int = 1440
+var pageDelay time.Duration = 500 * time.Millisecond
+var timeout time.Duration = 5 * time.Minute
+
+func init() <span class="cov8" title="1">{
+        importCmd.Flags().StringVarP(&amp;screenshotDir, "temp", "t", "screenshots", "Temporary directory for screenshots these will be used to generate the pdf.")
+        importCmd.Flags().StringVarP(&amp;email, "email", "e", "", "Edubase email for login.")
+        importCmd.Flags().StringVarP(&amp;password, "password", "p", "", "Edubase password for login.")
+        importCmd.Flags().IntVarP(&amp;maxPages, "max-pages", "m", -1, "Max pages to import from the book.")
+        importCmd.Flags().IntVarP(&amp;startPage, "start-page", "s", 1, "Start page to import from the book.")
+        importCmd.Flags().BoolVarP(&amp;imgOverwrite, "img-overwrite", "o", false, "Overwrite existing screenshots.")
+        importCmd.Flags().BoolVarP(&amp;debug, "debug", "d", false, "Debug mode. Show browser window.")
+        importCmd.Flags().BoolVarP(&amp;manualLogin, "manual", "M", false, "Type your credentials manually. This is useful if you use Microsoft login.")
+        importCmd.Flags().IntVarP(&amp;height, "height", "H", height, "Browser height in pixels this can affect the screenshot quality.")
+        importCmd.Flags().IntVarP(&amp;width, "width", "W", width, "Browser width in pixels this can affect the screenshot quality.")
+        importCmd.Flags().DurationVarP(&amp;pageDelay, "page-delay", "D", pageDelay, "Delay between pages in milliseconds. This is required to give the browser time to load the page.")
+        importCmd.Flags().DurationVarP(&amp;timeout, "timeout", "T", timeout, "Maximum time the app can take to download all pages. (increase this value for large books)")
+
+        importCmd.MarkFlagsRequiredTogether("email", "password")
+
+        rootCmd.AddCommand(importCmd)
+}</span>
+
+var importCmd = &amp;cobra.Command{
+        Use: "import",
+        Long: `Description:
+  The import command will sign in to Edubase, fetch the books, and take screenshots of the pages. 
+  Screenshots will be used to generate a PDF. The PDF will be saved in the current directory.
+
+Example:
+  edubase-to-pdf import -e your_email@example.com -p your_password -s 2 -m 10
+
+  This example will sign in to Edubase using the provided email and password. 
+  It will start importing from page 2 and import a maximum of 10 pages. 
+  The resulting PDF will be saved in the current directory.
+
+Contact:
+  For any issues or questions, please open an issue on the GitHub repository:
+  https://github.com/michaelbeutler/edubase-to-pdf/issues`,
+        Run: func(cmd *cobra.Command, args []string) <span class="cov0" title="0">{
+                err := playwright.Install()
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Fatalf("could not install Playwright: %v", err)
+                }</span>
+
+                <span class="cov0" title="0">importProcess := newImportProcess()
+
+                credentials := edubase.Credentials{
+                        Email:    email,
+                        Password: password,
+                }
+
+                // if email or password is empty, get credentials from form
+                if manualLogin </span><span class="cov0" title="0">{
+                        fmt.Println("Manual login selected. Please complete the login in the opened browser window...")
+                        fmt.Println("For closing the application, close the browser window and press Ctrl+C in this terminal...")
+                }</span> else<span class="cov0" title="0"> {
+                        if email == "" || password == "" </span><span class="cov0" title="0">{
+                                c, err := edubase.GetCredentials()
+                                if err != nil </span><span class="cov0" title="0">{
+                                        log.Fatalf("could not get credentials: %v", err)
+                                }</span>
+
+                                <span class="cov0" title="0">credentials = c</span>
+                        }
+                }
+
+                // login
+                <span class="cov0" title="0">importProcess.login(credentials)
+
+                // get books
+                books, err := importProcess.getBooks()
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Fatalf("could not get books: %v", err)
+                }</span>
+
+                <span class="cov0" title="0">book := edubase.Book{}
+                booksForm := huh.NewForm(
+                        huh.NewGroup(
+                                huh.NewSelect[edubase.Book]().Title("Book").OptionsFunc(func() []huh.Option[edubase.Book] </span><span class="cov0" title="0">{
+                                        return huh.NewOptions(books...)
+                                }</span>, &amp;books).Key("Title").Value(&amp;book),
+                        ),
+                )
+
+                <span class="cov0" title="0">err = booksForm.Run()
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Fatalf("could not get book id: %v", err)
+                }</span>
+
+                // open book
+                <span class="cov0" title="0">importProcess.bookProvider = edubase.NewBookProvider(importProcess.page, book.Id)
+
+                err = importProcess.bookProvider.Open(startPage)
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Fatalf("could not open book: %v", err)
+                }</span>
+
+                <span class="cov0" title="0">totalPages, err := importProcess.bookProvider.GetTotalPages()
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Fatalf("could not get total pages: %v", err)
+                }</span>
+
+                <span class="cov0" title="0">if maxPages != -1 </span><span class="cov0" title="0">{
+                        totalPages = maxPages
+                }</span>
+
+                <span class="cov0" title="0">createDirIfNotExists(screenshotDir)
+
+                barDownloadImg := progressbar.Default(int64(totalPages), "Downloading pages...")
+                for i := startPage; i &lt;= (startPage-1)+totalPages; i++ </span><span class="cov0" title="0">{
+
+                        filename := fmt.Sprintf("%s/%d_%d.jpeg", screenshotDir, book.Id, i)
+
+                        if _, err := os.Stat(filename); err == nil &amp;&amp; !imgOverwrite </span>{<span class="cov0" title="0">
+                                // file exists, skip screenshot
+                        }</span> else<span class="cov0" title="0"> {
+                                // wait for page to load
+                                time.Sleep(pageDelay)
+                                // take screenshot
+                                err = importProcess.bookProvider.Screenshot(filename)
+                                if err != nil </span><span class="cov0" title="0">{
+                                        log.Fatalf("could not take screenshot: %v", err)
+                                }</span>
+                        }
+
+                        // next page
+                        <span class="cov0" title="0">err = importProcess.bookProvider.NextPage()
+                        if err != nil </span><span class="cov0" title="0">{
+                                log.Fatalf("could not navigate to next page: %v", err)
+                        }</span>
+
+                        <span class="cov0" title="0">barDownloadImg.Add(1)</span>
+                }
+
+                // Generate PDF from screenshots that are previously taken
+                <span class="cov0" title="0">barImgtoPdf := progressbar.Default(int64(totalPages), "Generating PDF...")
+                pdfPath := fmt.Sprintf("%s.pdf", sanitizeFilename(book.Title))
+                for i := startPage; i &lt;= (startPage-1)+totalPages; i++ </span><span class="cov0" title="0">{
+
+                        filename := fmt.Sprintf("%s/%d_%d.jpeg", screenshotDir, book.Id, i)
+                        // Generate PDF and append
+                        pdfcpu.ImportImagesFile([]string{filename}, fmt.Sprintf("%s.pdf", book.Title), nil, model.NewDefaultConfiguration())
+                        time.Sleep(pageDelay)
+                        barImgtoPdf.Add(1)
+                }</span>
+
+                // Read the PDF Syntax
+                <span class="cov0" title="0">pdfReadCtx, err := pdfcpu.ReadContextFile(pdfPath)
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Fatalf("❌ Failed to read PDF file '%s' to validate: %v", pdfPath, err)
+                }</span>
+                // Validate the number of pages in the PDF
+                <span class="cov0" title="0">actualPageCountInPdf := pdfReadCtx.PageCount
+                if actualPageCountInPdf &lt; totalPages </span><span class="cov0" title="0">{
+                        log.Fatalf("❌ Failed to import all pages! Ebook Pages: %d | Pages in PDF: %d. Maybe delete PDF and try again.", totalPages, actualPageCountInPdf)
+                }</span>
+
+                <span class="cov0" title="0">if actualPageCountInPdf &gt; totalPages </span><span class="cov0" title="0">{
+                        log.Fatalf("❌ PDF has too many pages! Ebook Pages: %d | Pages in PDF: %d. Maybe delete PDF and try again.", totalPages, actualPageCountInPdf)
+                }</span>
+
+                <span class="cov0" title="0">if err = importProcess.browser.Close(); err != nil </span><span class="cov0" title="0">{
+                        log.Fatalf("could not close browser: %v", err)
+                }</span>
+                <span class="cov0" title="0">if err = importProcess.pw.Stop(); err != nil </span><span class="cov0" title="0">{
+                        log.Fatalf("could not stop Playwright: %v", err)
+                }</span>
+
+        },
+}
+
+func sanitizeFilename(filename string) string <span class="cov8" title="1">{
+        sanitized := filename
+        for _, char := range []string{"/", "\\", ":", "*", "?", "\"", "&lt;", "&gt;", "|"} </span><span class="cov8" title="1">{
+                sanitized = strings.ReplaceAll(sanitized, char, "_")
+        }</span>
+        <span class="cov8" title="1">return sanitized</span>
+}
+
+type importProcess struct {
+        page            playwright.Page
+        browser         playwright.Browser
+        pw              *playwright.Playwright
+        loginProvider   *edubase.LoginProvider
+        bookProvider    *edubase.BookProvider
+        libraryProvider *edubase.LibraryProvider
+}
+
+func newPlaywrightPage() (playwright.Page, playwright.Browser, *playwright.Playwright) <span class="cov0" title="0">{
+        pw, _ := playwright.Run()
+        browser, _ := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
+                Headless: playwright.Bool(!debug &amp;&amp; !manualLogin),
+                Timeout:  playwright.Float(float64(timeout.Milliseconds())),
+        })
+        page, _ := browser.NewPage(playwright.BrowserNewPageOptions{
+                Viewport: &amp;playwright.Size{
+                        Width:  *playwright.Int(width),
+                        Height: *playwright.Int(height),
+                },
+        })
+        return page, browser, pw
+}</span>
+
+func newImportProcess() *importProcess <span class="cov0" title="0">{
+        page, browser, pw := newPlaywrightPage()
+
+        loginProvider := edubase.NewLoginProvider(page)
+        libraryProvider := edubase.NewLibraryProvider(page)
+
+        return &amp;importProcess{
+                page:            page,
+                browser:         browser,
+                pw:              pw,
+                loginProvider:   loginProvider,
+                libraryProvider: libraryProvider,
+        }
+}</span>
+
+func (i *importProcess) login(credentials edubase.Credentials) <span class="cov0" title="0">{
+        loginSpinner := "logging in..."
+        if (credentials.Email == "" || credentials.Password == "") &amp;&amp; !manualLogin </span><span class="cov0" title="0">{
+                loginSpinner = "login manually in open browser..."
+        }</span>
+
+        <span class="cov0" title="0">err := spinner.New().Title(loginSpinner).
+                Action(func() </span><span class="cov0" title="0">{
+                        err := i.loginProvider.Login(credentials, manualLogin)
+                        if err != nil </span><span class="cov0" title="0">{
+                                log.Fatalf("could not login: %v", err)
+                        }</span>
+
+                }).
+                Run()
+
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("could not login: %v", err)
+        }</span>
+}
+
+func (i *importProcess) getBooks() ([]edubase.Book, error) <span class="cov0" title="0">{
+        err := spinner.New().Title("fetching books...").
+                Action(func() </span><span class="cov0" title="0">{
+                        _, err := i.libraryProvider.GetBooks()
+                        if err != nil </span><span class="cov0" title="0">{
+                                log.Fatalf("could not get books: %v", err)
+                        }</span>
+                }).
+                Run()
+
+        <span class="cov0" title="0">return i.libraryProvider.Books, err</span>
+}
+
+func createDirIfNotExists(dir string) <span class="cov0" title="0">{
+        if _, err := os.Stat(dir); os.IsNotExist(err) </span><span class="cov0" title="0">{
+                os.Mkdir(dir, 0755)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package cmd
+
+import (
+        "fmt"
+        "os"
+
+        "github.com/spf13/cobra"
+)
+
+var rootCmd = &amp;cobra.Command{
+        Use:   "edubase-to-pdf",
+        Short: "Convert Edubase to PDF",
+        Long:  `Convert Edubase to PDF.`,
+}
+
+func Execute() <span class="cov0" title="0">{
+        if err := rootCmd.Execute(); err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err)
+                os.Exit(1)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package cmd
+
+import (
+        "context"
+        "encoding/json"
+        "fmt"
+        "io"
+        "log"
+        "net/http"
+        "os"
+        "os/signal"
+        "path/filepath"
+        "strconv"
+        "syscall"
+        "time"
+
+        "github.com/michaelbeutler/edubase-to-pdf/pkg/edubase"
+        pdfcpu "github.com/pdfcpu/pdfcpu/pkg/api"
+        "github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
+        "github.com/playwright-community/playwright-go"
+        "github.com/spf13/cobra"
+)
+
+var (
+        serverPort int
+        serverHost string
+)
+
+func init() <span class="cov8" title="1">{
+        serverCmd.Flags().IntVarP(&amp;serverPort, "port", "P", 8080, "Port for the HTTP server")
+        serverCmd.Flags().StringVarP(&amp;serverHost, "host", "H", "0.0.0.0", "Host address for the HTTP server")
+
+        rootCmd.AddCommand(serverCmd)
+}</span>
+
+var serverCmd = &amp;cobra.Command{
+        Use:   "server",
+        Short: "Start HTTP server for PDF downloads",
+        Long: `Start an HTTP server that allows clients to download PDFs from Edubase.
+
+The server provides a stateless API endpoint that accepts book download requests
+and streams PDF responses. All request parameters are validated and proper error
+responses are returned.
+
+Example:
+  edubase-to-pdf server --port 8080
+
+API Endpoint:
+  POST /download
+  
+Request Body:
+  {
+    "email": "your_email@example.com",
+    "password": "your_password",
+    "book_id": 12345,
+    "start_page": 1,
+    "max_pages": -1
+  }
+
+Response:
+  - 200 OK: PDF file stream
+  - 400 Bad Request: Invalid request parameters
+  - 401 Unauthorized: Authentication failed
+  - 500 Internal Server Error: Processing error`,
+        Run: func(cmd *cobra.Command, args []string) <span class="cov0" title="0">{
+                // Ensure playwright is installed
+                if err := playwright.Install(); err != nil </span><span class="cov0" title="0">{
+                        log.Fatalf("could not install Playwright: %v", err)
+                }</span>
+
+                <span class="cov0" title="0">server := newHTTPServer(serverHost, serverPort)
+                server.start()</span>
+        },
+}
+
+// DownloadRequest represents the request body for PDF download
+type DownloadRequest struct {
+        Email     string `json:"email"`
+        Password  string `json:"password"`
+        BookID    int    `json:"book_id"`
+        StartPage int    `json:"start_page"`
+        MaxPages  int    `json:"max_pages"`
+}
+
+// ErrorResponse represents error response
+type ErrorResponse struct {
+        Error   string `json:"error"`
+        Message string `json:"message"`
+}
+
+// httpServer manages the HTTP server
+type httpServer struct {
+        server *http.Server
+}
+
+// newHTTPServer creates a new HTTP server instance
+func newHTTPServer(host string, port int) *httpServer <span class="cov8" title="1">{
+        mux := http.NewServeMux()
+        
+        s := &amp;httpServer{
+                server: &amp;http.Server{
+                        Addr:         fmt.Sprintf("%s:%d", host, port),
+                        Handler:      mux,
+                        ReadTimeout:  15 * time.Second,
+                        WriteTimeout: 5 * time.Minute, // Long timeout for PDF generation
+                        IdleTimeout:  60 * time.Second,
+                },
+        }
+
+        // Register handlers
+        mux.HandleFunc("/download", s.handleDownload)
+        mux.HandleFunc("/health", s.handleHealth)
+
+        return s
+}</span>
+
+// start begins listening and serving HTTP requests
+func (s *httpServer) start() <span class="cov0" title="0">{
+        // Setup graceful shutdown
+        stop := make(chan os.Signal, 1)
+        signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+        go func() </span><span class="cov0" title="0">{
+                log.Printf("Starting HTTP server on %s", s.server.Addr)
+                if err := s.server.ListenAndServe(); err != nil &amp;&amp; err != http.ErrServerClosed </span><span class="cov0" title="0">{
+                        log.Fatalf("Server error: %v", err)
+                }</span>
+        }()
+
+        <span class="cov0" title="0">&lt;-stop
+        log.Println("Shutting down server...")
+
+        ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+        defer cancel()
+
+        if err := s.server.Shutdown(ctx); err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Server shutdown error: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">log.Println("Server stopped")</span>
+}
+
+// handleHealth responds to health check requests
+func (s *httpServer) handleHealth(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        if r.Method != http.MethodGet </span><span class="cov8" title="1">{
+                s.writeError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Only GET method is allowed")
+                return
+        }</span>
+
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(map[string]string{"status": "ok"})</span>
+}
+
+// handleDownload processes PDF download requests
+func (s *httpServer) handleDownload(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        if r.Method != http.MethodPost </span><span class="cov8" title="1">{
+                s.writeError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Only POST method is allowed")
+                return
+        }</span>
+
+        // Parse and validate request
+        <span class="cov8" title="1">var req DownloadRequest
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov8" title="1">{
+                s.writeError(w, http.StatusBadRequest, "invalid_json", "Invalid JSON request body")
+                return
+        }</span>
+
+        <span class="cov8" title="1">if err := s.validateRequest(&amp;req); err != nil </span><span class="cov8" title="1">{
+                s.writeError(w, http.StatusBadRequest, "validation_error", err.Error())
+                return
+        }</span>
+
+        // Process the download request
+        <span class="cov8" title="1">if err := s.processDownload(w, &amp;req); err != nil </span><span class="cov8" title="1">{
+                log.Printf("Download processing error: %v", err)
+                // Check if response has already been written
+                if err.Error() == "authentication failed" </span><span class="cov0" title="0">{
+                        s.writeError(w, http.StatusUnauthorized, "auth_failed", "Authentication failed")
+                }</span> else<span class="cov8" title="1"> {
+                        s.writeError(w, http.StatusInternalServerError, "processing_error", "Failed to process request")
+                }</span>
+        }
+}
+
+// validateRequest validates the download request
+func (s *httpServer) validateRequest(req *DownloadRequest) error <span class="cov8" title="1">{
+        if req.Email == "" </span><span class="cov8" title="1">{
+                return fmt.Errorf("email is required")
+        }</span>
+        <span class="cov8" title="1">if req.Password == "" </span><span class="cov8" title="1">{
+                return fmt.Errorf("password is required")
+        }</span>
+        <span class="cov8" title="1">if req.BookID &lt;= 0 </span><span class="cov8" title="1">{
+                return fmt.Errorf("book_id must be a positive integer")
+        }</span>
+        <span class="cov8" title="1">if req.StartPage &lt;= 0 </span><span class="cov8" title="1">{
+                return fmt.Errorf("start_page must be a positive integer")
+        }</span>
+        <span class="cov8" title="1">if req.MaxPages == 0 </span><span class="cov8" title="1">{
+                return fmt.Errorf("max_pages must be -1 (all pages) or a positive integer")
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+// processDownload handles the actual PDF generation and streaming
+func (s *httpServer) processDownload(w http.ResponseWriter, req *DownloadRequest) error <span class="cov8" title="1">{
+        // Create temporary directory for this request
+        tempDir, err := s.createTempDir()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create temp directory: %w", err)
+        }</span>
+        <span class="cov8" title="1">defer os.RemoveAll(tempDir)
+
+        // Setup playwright and browser
+        pw, browser, page, err := s.setupBrowser()
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov0" title="0">defer s.cleanupBrowser(pw, browser, page)
+
+        // Authenticate user
+        if err := s.authenticateUser(page, req); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("authentication failed")
+        }</span>
+
+        // Download pages
+        <span class="cov0" title="0">totalPages, err := s.downloadPages(page, req, tempDir)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        // Generate and stream PDF
+        <span class="cov0" title="0">return s.generateAndStreamPDF(w, req, tempDir, totalPages)</span>
+}
+
+// createTempDir creates a temporary directory for screenshots
+func (s *httpServer) createTempDir() (string, error) <span class="cov8" title="1">{
+        return os.MkdirTemp("", "edubase-download-*")
+}</span>
+
+// setupBrowser initializes playwright and creates a browser instance
+func (s *httpServer) setupBrowser() (*playwright.Playwright, playwright.Browser, playwright.Page, error) <span class="cov8" title="1">{
+        pw, err := playwright.Run()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, nil, nil, fmt.Errorf("failed to run playwright: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
+                Headless: playwright.Bool(true),
+                Timeout:  playwright.Float(float64(timeout.Milliseconds())),
+        })
+        if err != nil </span><span class="cov8" title="1">{
+                pw.Stop()
+                return nil, nil, nil, fmt.Errorf("failed to launch browser: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">page, err := browser.NewPage(playwright.BrowserNewPageOptions{
+                Viewport: &amp;playwright.Size{
+                        Width:  *playwright.Int(2560),
+                        Height: *playwright.Int(1440),
+                },
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                browser.Close()
+                pw.Stop()
+                return nil, nil, nil, fmt.Errorf("failed to create page: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return pw, browser, page, nil</span>
+}
+
+// cleanupBrowser closes browser resources
+func (s *httpServer) cleanupBrowser(pw *playwright.Playwright, browser playwright.Browser, page playwright.Page) <span class="cov8" title="1">{
+        if page != nil </span><span class="cov0" title="0">{
+                page.Close()
+        }</span>
+        <span class="cov8" title="1">if browser != nil </span><span class="cov0" title="0">{
+                browser.Close()
+        }</span>
+        <span class="cov8" title="1">if pw != nil </span><span class="cov0" title="0">{
+                pw.Stop()
+        }</span>
+}
+
+// authenticateUser logs in to Edubase
+func (s *httpServer) authenticateUser(page playwright.Page, req *DownloadRequest) error <span class="cov0" title="0">{
+        loginProvider := edubase.NewLoginProvider(page)
+        credentials := edubase.Credentials{
+                Email:    req.Email,
+                Password: req.Password,
+        }
+        return loginProvider.Login(credentials, false)
+}</span>
+
+// downloadPages downloads all pages from the book
+func (s *httpServer) downloadPages(page playwright.Page, req *DownloadRequest, tempDir string) (int, error) <span class="cov0" title="0">{
+        bookProvider := edubase.NewBookProvider(page, req.BookID)
+        if err := bookProvider.Open(req.StartPage); err != nil </span><span class="cov0" title="0">{
+                return 0, fmt.Errorf("failed to open book: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">totalPages, err := bookProvider.GetTotalPages()
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, fmt.Errorf("failed to get total pages: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">pagesToDownload := totalPages
+        if req.MaxPages &gt; 0 </span><span class="cov0" title="0">{
+                pagesToDownload = req.MaxPages
+        }</span>
+
+        <span class="cov0" title="0">for i := req.StartPage; i &lt;= (req.StartPage-1)+pagesToDownload; i++ </span><span class="cov0" title="0">{
+                filename := filepath.Join(tempDir, fmt.Sprintf("page_%d.jpeg", i))
+                
+                time.Sleep(500 * time.Millisecond)
+                if err := bookProvider.Screenshot(filename); err != nil </span><span class="cov0" title="0">{
+                        return 0, fmt.Errorf("failed to take screenshot: %w", err)
+                }</span>
+
+                <span class="cov0" title="0">if err := bookProvider.NextPage(); err != nil </span><span class="cov0" title="0">{
+                        return 0, fmt.Errorf("failed to navigate to next page: %w", err)
+                }</span>
+        }
+
+        <span class="cov0" title="0">return pagesToDownload, nil</span>
+}
+
+// generateAndStreamPDF creates PDF from images and streams it to client
+func (s *httpServer) generateAndStreamPDF(w http.ResponseWriter, req *DownloadRequest, tempDir string, pagesToDownload int) error <span class="cov0" title="0">{
+        pdfPath := filepath.Join(tempDir, "output.pdf")
+        
+        for i := req.StartPage; i &lt;= (req.StartPage-1)+pagesToDownload; i++ </span><span class="cov0" title="0">{
+                filename := filepath.Join(tempDir, fmt.Sprintf("page_%d.jpeg", i))
+                if err := pdfcpu.ImportImagesFile([]string{filename}, pdfPath, nil, model.NewDefaultConfiguration()); err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to generate PDF: %w", err)
+                }</span>
+        }
+
+        <span class="cov0" title="0">return s.streamPDF(w, pdfPath, req.BookID)</span>
+}
+
+// streamPDF streams the PDF file to the client
+func (s *httpServer) streamPDF(w http.ResponseWriter, pdfPath string, bookID int) error <span class="cov8" title="1">{
+        pdfFile, err := os.Open(pdfPath)
+        if err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("failed to open PDF: %w", err)
+        }</span>
+        <span class="cov8" title="1">defer pdfFile.Close()
+
+        stat, err := pdfFile.Stat()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to get PDF stats: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/pdf")
+        w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=book_%d.pdf", bookID))
+        w.Header().Set("Content-Length", strconv.FormatInt(stat.Size(), 10))
+        w.WriteHeader(http.StatusOK)
+
+        if _, err := io.Copy(w, pdfFile); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to stream PDF: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// writeError writes an error response
+func (s *httpServer) writeError(w http.ResponseWriter, status int, errorCode, message string) <span class="cov8" title="1">{
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(status)
+        json.NewEncoder(w).Encode(ErrorResponse{
+                Error:   errorCode,
+                Message: message,
+        })
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
