@@ -22,8 +22,9 @@ import (
 )
 
 var (
-	serverPort int
-	serverHost string
+	serverPort    int
+	serverHost    string
+	serverTimeout = 5 * time.Minute // Default timeout for browser operations
 )
 
 func init() {
@@ -197,7 +198,7 @@ func (s *httpServer) validateRequest(req *DownloadRequest) error {
 	if req.StartPage <= 0 {
 		return fmt.Errorf("start_page must be a positive integer")
 	}
-	if req.MaxPages == 0 {
+	if req.MaxPages == 0 || (req.MaxPages < 0 && req.MaxPages != -1) {
 		return fmt.Errorf("max_pages must be -1 (all pages) or a positive integer")
 	}
 	return nil
@@ -248,7 +249,7 @@ func (s *httpServer) setupBrowser() (*playwright.Playwright, playwright.Browser,
 
 	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
 		Headless: playwright.Bool(true),
-		Timeout:  playwright.Float(float64(timeout.Milliseconds())),
+		Timeout:  playwright.Float(float64(serverTimeout.Milliseconds())),
 	})
 	if err != nil {
 		pw.Stop()

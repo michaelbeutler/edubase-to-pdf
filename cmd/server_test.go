@@ -291,6 +291,18 @@ func TestValidateRequest(t *testing.T) {
 			expectError: true,
 			errorMsg:    "max_pages must be -1 (all pages) or a positive integer",
 		},
+		{
+			name: "Negative max pages (-2)",
+			req: DownloadRequest{
+				Email:     "test@example.com",
+				Password:  "password123",
+				BookID:    12345,
+				StartPage: 1,
+				MaxPages:  -2,
+			},
+			expectError: true,
+			errorMsg:    "max_pages must be -1 (all pages) or a positive integer",
+		},
 	}
 
 	for _, tt := range tests {
@@ -1019,19 +1031,52 @@ func TestHandleDownload_ResponseHeaders(t *testing.T) {
 func TestValidateRequest_NegativeMaxPages(t *testing.T) {
 	server := newHTTPServer("localhost", 8080)
 
-	// Test that negative max_pages other than -1 are handled
-	req := DownloadRequest{
-		Email:     "test@example.com",
-		Password:  "password",
-		BookID:    12345,
-		StartPage: 1,
-		MaxPages:  -2,
+	tests := []struct {
+		name      string
+		maxPages  int
+		wantError bool
+		errorMsg  string
+	}{
+		{
+			name:      "-1 is valid (all pages)",
+			maxPages:  -1,
+			wantError: false,
+		},
+		{
+			name:      "-2 is invalid",
+			maxPages:  -2,
+			wantError: true,
+			errorMsg:  "max_pages must be -1 (all pages) or a positive integer",
+		},
+		{
+			name:      "-100 is invalid",
+			maxPages:  -100,
+			wantError: true,
+			errorMsg:  "max_pages must be -1 (all pages) or a positive integer",
+		},
 	}
 
-	// -2 should be valid (any negative number is allowed except 0)
-	err := server.validateRequest(&req)
-	if err != nil {
-		t.Errorf("expected no error for max_pages=-2, got %v", err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := DownloadRequest{
+				Email:     "test@example.com",
+				Password:  "password",
+				BookID:    12345,
+				StartPage: 1,
+				MaxPages:  tt.maxPages,
+			}
+
+			err := server.validateRequest(&req)
+			if tt.wantError && err == nil {
+				t.Errorf("expected error but got none")
+			}
+			if !tt.wantError && err != nil {
+				t.Errorf("expected no error but got: %v", err)
+			}
+			if tt.wantError && err != nil && err.Error() != tt.errorMsg {
+				t.Errorf("expected error %q, got %q", tt.errorMsg, err.Error())
+			}
+		})
 	}
 }
 
@@ -1276,7 +1321,7 @@ func TestValidateRequest_BoundaryValues(t *testing.T) {
 			wantError: false,
 		},
 		{
-			name: "MaxPages = -100",
+			name: "MaxPages = -100 (invalid)",
 			req: DownloadRequest{
 				Email:     "test@example.com",
 				Password:  "pass",
@@ -1284,7 +1329,7 @@ func TestValidateRequest_BoundaryValues(t *testing.T) {
 				StartPage: 1,
 				MaxPages:  -100,
 			},
-			wantError: false,
+			wantError: true,
 		},
 	}
 
