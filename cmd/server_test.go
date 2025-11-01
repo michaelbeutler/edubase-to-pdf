@@ -616,10 +616,16 @@ func TestHandleDownload_Integration(t *testing.T) {
 	defer resp.Body.Close()
 
 	// Check that we get either success or an expected error (playwright not installed, etc.)
-	if resp.StatusCode != http.StatusOK && 
-	   resp.StatusCode != http.StatusInternalServerError &&
-	   resp.StatusCode != http.StatusUnauthorized {
-		t.Errorf("unexpected status code: %d", resp.StatusCode)
+	acceptableStatuses := []int{http.StatusOK, http.StatusInternalServerError, http.StatusUnauthorized}
+	statusAcceptable := false
+	for _, status := range acceptableStatuses {
+		if resp.StatusCode == status {
+			statusAcceptable = true
+			break
+		}
+	}
+	if !statusAcceptable {
+		t.Errorf("unexpected status code: %d, expected one of %v", resp.StatusCode, acceptableStatuses)
 	}
 }
 
@@ -713,11 +719,16 @@ func TestHandleDownload_EdgeCases(t *testing.T) {
 			defer resp.Body.Close()
 
 			// These should fail during processing, not validation
-			if resp.StatusCode != tt.expectedStatus && resp.StatusCode != http.StatusUnauthorized {
-				// Either internal error or auth failure is acceptable
-				if resp.StatusCode != http.StatusInternalServerError && resp.StatusCode != http.StatusUnauthorized {
-					t.Errorf("expected status %d or %d, got %d", tt.expectedStatus, http.StatusUnauthorized, resp.StatusCode)
+			acceptableStatuses := []int{tt.expectedStatus, http.StatusUnauthorized, http.StatusInternalServerError}
+			statusAcceptable := false
+			for _, status := range acceptableStatuses {
+				if resp.StatusCode == status {
+					statusAcceptable = true
+					break
 				}
+			}
+			if !statusAcceptable {
+				t.Errorf("expected one of %v, got %d", acceptableStatuses, resp.StatusCode)
 			}
 		})
 	}
@@ -911,9 +922,11 @@ func TestHandleDownload_LargeRequestBody(t *testing.T) {
 	server := newHTTPServer("localhost", 8080)
 
 	// Create a request with a very large password (edge case)
+	// Use a repeating pattern to simulate realistic large input
+	largePassword := strings.Repeat("a", 10000)
 	req := DownloadRequest{
 		Email:     "test@example.com",
-		Password:  string(make([]byte, 10000)), // Very long password
+		Password:  largePassword,
 		BookID:    12345,
 		StartPage: 1,
 		MaxPages:  1,
@@ -929,8 +942,16 @@ func TestHandleDownload_LargeRequestBody(t *testing.T) {
 	resp := w.Result()
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusInternalServerError && resp.StatusCode != http.StatusUnauthorized {
-		t.Errorf("expected failure status, got %d", resp.StatusCode)
+	acceptableStatuses := []int{http.StatusInternalServerError, http.StatusUnauthorized}
+	statusAcceptable := false
+	for _, status := range acceptableStatuses {
+		if resp.StatusCode == status {
+			statusAcceptable = true
+			break
+		}
+	}
+	if !statusAcceptable {
+		t.Errorf("expected one of %v, got %d", acceptableStatuses, resp.StatusCode)
 	}
 }
 
