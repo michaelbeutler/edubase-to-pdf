@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -20,6 +21,9 @@ import (
 	"github.com/playwright-community/playwright-go"
 	"github.com/spf13/cobra"
 )
+
+//go:embed web/index.html
+var clientHTML []byte
 
 const (
 	// Server configuration defaults
@@ -129,6 +133,7 @@ func newHTTPServer(host string, port int) *httpServer {
 	}
 
 	// Register handlers
+	mux.HandleFunc("/", s.handleClient)
 	mux.HandleFunc("/download", s.handleDownload)
 	mux.HandleFunc("/health", s.handleHealth)
 
@@ -161,8 +166,37 @@ func (s *httpServer) start() {
 	log.Println("Server stopped")
 }
 
+// handleClient serves the web client interface
+func (s *httpServer) handleClient(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		s.writeError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Only GET method is allowed")
+		return
+	}
+
+	// Only serve the root path
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write(clientHTML)
+}
+
 // handleHealth responds to health check requests
 func (s *httpServer) handleHealth(w http.ResponseWriter, r *http.Request) {
+	// Add CORS headers
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	// Handle preflight request
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	if r.Method != http.MethodGet {
 		s.writeError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Only GET method is allowed")
 		return
@@ -175,6 +209,17 @@ func (s *httpServer) handleHealth(w http.ResponseWriter, r *http.Request) {
 
 // handleDownload processes PDF download requests
 func (s *httpServer) handleDownload(w http.ResponseWriter, r *http.Request) {
+	// Add CORS headers
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	// Handle preflight request
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	if r.Method != http.MethodPost {
 		s.writeError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Only POST method is allowed")
 		return

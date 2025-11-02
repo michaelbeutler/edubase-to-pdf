@@ -104,9 +104,12 @@ edubase-to-pdf server
 # Server mit benutzerdefinierten Port starten
 edubase-to-pdf server --port 9090
 
-# Detaillierte API-Dokumentation
-# Siehe API.md für vollständige Dokumentation
+# Zugriff auf die Web-Oberfläche
+# Öffne http://localhost:8080 im Browser
 ```
+
+**Web-Client:**
+Der Server enthält eine integrierte Web-Oberfläche mit modernem Design (Tailwind CSS). Nach dem Start kannst du einfach `http://localhost:8080` in deinem Browser öffnen und PDFs über ein benutzerfreundliches Formular herunterladen.
 
 **HTTP API Beispiel:**
 ```bash

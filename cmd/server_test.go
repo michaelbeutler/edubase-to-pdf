@@ -79,6 +79,76 @@ func TestHandleHealth(t *testing.T) {
 	}
 }
 
+func TestHandleClient(t *testing.T) {
+	server := newHTTPServer("localhost", 8080)
+
+	tests := []struct {
+		name           string
+		method         string
+		path           string
+		expectedStatus int
+		checkHTML      bool
+	}{
+		{
+			name:           "GET root path returns HTML",
+			method:         http.MethodGet,
+			path:           "/",
+			expectedStatus: http.StatusOK,
+			checkHTML:      true,
+		},
+		{
+			name:           "GET non-root path returns 404",
+			method:         http.MethodGet,
+			path:           "/nonexistent",
+			expectedStatus: http.StatusNotFound,
+			checkHTML:      false,
+		},
+		{
+			name:           "POST request returns method not allowed",
+			method:         http.MethodPost,
+			path:           "/",
+			expectedStatus: http.StatusMethodNotAllowed,
+			checkHTML:      false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(tt.method, tt.path, nil)
+			w := httptest.NewRecorder()
+
+			server.handleClient(w, req)
+
+			resp := w.Result()
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.expectedStatus {
+				t.Errorf("expected status %d, got %d", tt.expectedStatus, resp.StatusCode)
+			}
+
+			if tt.checkHTML {
+				body, _ := io.ReadAll(resp.Body)
+				bodyStr := string(body)
+
+				if !strings.Contains(bodyStr, "<!DOCTYPE html>") {
+					t.Error("expected HTML content")
+				}
+				if !strings.Contains(bodyStr, "Edubase to PDF") {
+					t.Error("expected page title in HTML")
+				}
+				if !strings.Contains(bodyStr, "tailwindcss") {
+					t.Error("expected Tailwind CSS in HTML")
+				}
+
+				contentType := resp.Header.Get("Content-Type")
+				if !strings.Contains(contentType, "text/html") {
+					t.Errorf("expected Content-Type text/html, got %s", contentType)
+				}
+			}
+		})
+	}
+}
+
 func TestHandleDownload_MethodValidation(t *testing.T) {
 	server := newHTTPServer("localhost", 8080)
 

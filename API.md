@@ -4,6 +4,17 @@
 
 The HTTP server provides a stateless REST API for downloading PDFs from Edubase. The server handles authentication, page downloading, and PDF generation, streaming the result directly to clients.
 
+## Web Client
+
+The server includes a built-in web client for easy interaction with the API. Simply start the server and navigate to `http://localhost:8080` in your browser to access the web interface.
+
+**Features:**
+- Modern, responsive UI built with Tailwind CSS
+- Form-based PDF download with validation
+- Real-time server health check
+- Progress indication during download
+- Error handling and status messages
+
 ## Starting the Server
 
 ```bash
@@ -17,7 +28,17 @@ edubase-to-pdf server --port 9090
 edubase-to-pdf server --host localhost --port 3000
 ```
 
+Once started, access the web client at: `http://localhost:8080`
+
 ## API Endpoints
+
+### Web Client
+
+Access the browser-based client interface.
+
+**Endpoint:** `GET /`
+
+**Response:** HTML page with interactive form
 
 ### Health Check
 
