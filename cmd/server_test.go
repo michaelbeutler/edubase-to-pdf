@@ -62,7 +62,10 @@ func TestHandleHealth(t *testing.T) {
 				t.Errorf("expected status %d, got %d", tt.expectedStatus, resp.StatusCode)
 			}
 
-			body, _ := io.ReadAll(resp.Body)
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				t.Fatalf("failed to read response body: %v", err)
+			}
 			bodyStr := strings.TrimSpace(string(body))
 
 			if !strings.Contains(bodyStr, tt.expectedBody) {
