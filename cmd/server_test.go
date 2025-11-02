@@ -172,7 +172,9 @@ func TestHandleDownload_InvalidJSON(t *testing.T) {
 			}
 
 			var errResp ErrorResponse
-			json.NewDecoder(resp.Body).Decode(&errResp)
+			if err := json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
+				t.Fatalf("failed to decode error response: %v", err)
+			}
 
 			if errResp.Error != tt.expectedError {
 				t.Errorf("expected error %q, got %q", tt.expectedError, errResp.Error)
