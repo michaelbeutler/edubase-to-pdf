@@ -193,7 +193,9 @@ func TestHandleDownload_MethodValidation(t *testing.T) {
 			}
 
 			var errResp ErrorResponse
-			json.NewDecoder(resp.Body).Decode(&errResp)
+			if err := json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
+				t.Fatalf("failed to decode error response: %v", err)
+			}
 
 			if errResp.Error != tt.expectedError {
 				t.Errorf("expected error %q, got %q", tt.expectedError, errResp.Error)
@@ -476,7 +478,10 @@ func TestHandleDownload_ValidationErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			body, _ := json.Marshal(tt.req)
+			body, err := json.Marshal(tt.req)
+			if err != nil {
+				t.Fatalf("failed to marshal request: %v", err)
+			}
 			req := httptest.NewRequest(http.MethodPost, "/download", bytes.NewReader(body))
 			w := httptest.NewRecorder()
 
@@ -490,7 +495,9 @@ func TestHandleDownload_ValidationErrors(t *testing.T) {
 			}
 
 			var errResp ErrorResponse
-			json.NewDecoder(resp.Body).Decode(&errResp)
+			if err := json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
+				t.Fatalf("failed to decode error response: %v", err)
+			}
 
 			if errResp.Error != tt.expectedError {
 				t.Errorf("expected error %q, got %q", tt.expectedError, errResp.Error)
@@ -550,7 +557,9 @@ func TestWriteError(t *testing.T) {
 			}
 
 			var errResp ErrorResponse
-			json.NewDecoder(resp.Body).Decode(&errResp)
+			if err := json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
+				t.Fatalf("failed to decode error response: %v", err)
+			}
 
 			if errResp.Error != tt.errorCode {
 				t.Errorf("expected error %q, got %q", tt.errorCode, errResp.Error)
@@ -679,7 +688,10 @@ func TestHandleDownload_Integration(t *testing.T) {
 		MaxPages:  1, // Only download 1 page for testing
 	}
 
-	body, _ := json.Marshal(req)
+	body, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("failed to marshal DownloadRequest: %v", err)
+	}
 	httpReq := httptest.NewRequest(http.MethodPost, "/download", bytes.NewReader(body))
 	w := httptest.NewRecorder()
 
@@ -784,7 +796,10 @@ func TestHandleDownload_EdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			body, _ := json.Marshal(tt.req)
+			body, err := json.Marshal(tt.req)
+			if err != nil {
+				t.Fatalf("failed to marshal request: %v", err)
+			}
 			httpReq := httptest.NewRequest(http.MethodPost, "/download", bytes.NewReader(body))
 			w := httptest.NewRecorder()
 
@@ -939,7 +954,10 @@ func TestHandleDownload_InvalidCredentials(t *testing.T) {
 		MaxPages:  1,
 	}
 
-	body, _ := json.Marshal(req)
+	body, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("failed to marshal DownloadRequest: %v", err)
+	}
 	httpReq := httptest.NewRequest(http.MethodPost, "/download", bytes.NewReader(body))
 	w := httptest.NewRecorder()
 
@@ -1007,7 +1025,10 @@ func TestHandleDownload_LargeRequestBody(t *testing.T) {
 		MaxPages:  1,
 	}
 
-	body, _ := json.Marshal(req)
+	body, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("failed to marshal request: %v", err)
+	}
 	httpReq := httptest.NewRequest(http.MethodPost, "/download", bytes.NewReader(body))
 	w := httptest.NewRecorder()
 
@@ -1043,7 +1064,10 @@ func TestHandleDownload_MultipleRequests(t *testing.T) {
 			MaxPages:  1,
 		}
 
-		body, _ := json.Marshal(req)
+		body, err := json.Marshal(req)
+		if err != nil {
+			t.Fatalf("failed to marshal request: %v", err)
+		}
 		httpReq := httptest.NewRequest(http.MethodPost, "/download", bytes.NewReader(body))
 		w := httptest.NewRecorder()
 
@@ -1075,7 +1099,12 @@ func TestHandleDownload_ConcurrentRequests(t *testing.T) {
 				MaxPages:  1,
 			}
 
-			body, _ := json.Marshal(req)
+			body, err := json.Marshal(req)
+			if err != nil {
+				t.Errorf("failed to marshal request: %v", err)
+				done <- true
+				return
+			}
 			httpReq := httptest.NewRequest(http.MethodPost, "/download", bytes.NewReader(body))
 			w := httptest.NewRecorder()
 
@@ -1339,7 +1368,9 @@ func TestHandleDownload_RequestBodyReadError(t *testing.T) {
 	}
 
 	var errResp ErrorResponse
-	json.NewDecoder(resp.Body).Decode(&errResp)
+	if err := json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
+		t.Fatalf("failed to decode error response: %v", err)
+	}
 
 	if errResp.Error != "invalid_json" {
 		t.Errorf("expected error 'invalid_json', got %q", errResp.Error)

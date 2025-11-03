@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -24,6 +25,12 @@ import (
 
 //go:embed web/index.html
 var clientHTML []byte
+
+// Sentinel errors
+var (
+	ErrAuthFailed       = errors.New("authentication failed")
+	ErrResponseWritten  = errors.New("response headers already written")
+)
 
 const (
 	// Server configuration defaults
@@ -240,8 +247,11 @@ func (s *httpServer) handleDownload(w http.ResponseWriter, r *http.Request) {
 	// Process the download request
 	if err := s.processDownload(w, &req); err != nil {
 		log.Printf("Download processing error: %v", err)
-		// Check if response has already been written
-		if err.Error() == "authentication failed" {
+		// Don't write error response if headers were already written
+		if errors.Is(err, ErrResponseWritten) {
+			return
+		}
+		if errors.Is(err, ErrAuthFailed) {
 			s.writeError(w, http.StatusUnauthorized, "auth_failed", "Authentication failed")
 		} else {
 			s.writeError(w, http.StatusInternalServerError, "processing_error", "Failed to process request")
@@ -356,7 +366,10 @@ func (s *httpServer) authenticateUser(page playwright.Page, req *DownloadRequest
 		Email:    req.Email,
 		Password: req.Password,
 	}
-	return loginProvider.Login(credentials, false)
+	if err := loginProvider.Login(credentials, false); err != nil {
+		return fmt.Errorf("%w: %v", ErrAuthFailed, err)
+	}
+	return nil
 }
 
 // downloadPages downloads all pages from the book
@@ -424,8 +437,9 @@ func (s *httpServer) streamPDF(w http.ResponseWriter, pdfPath string, bookID int
 	w.Header().Set("Content-Length", strconv.FormatInt(stat.Size(), 10))
 	w.WriteHeader(http.StatusOK)
 
+	// After WriteHeader, response has started - wrap any errors with ErrResponseWritten
 	if _, err := io.Copy(w, pdfFile); err != nil {
-		return fmt.Errorf("failed to stream PDF: %w", err)
+		return fmt.Errorf("%w: failed to stream PDF: %v", ErrResponseWritten, err)
 	}
 
 	return nil
