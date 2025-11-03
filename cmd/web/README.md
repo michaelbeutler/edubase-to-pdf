@@ -41,3 +41,12 @@ Uses Tailwind CSS via CDN for:
 - Button states
 - Status messages
 - Progress bars
+
+## Security
+
+The Tailwind CSS library is loaded from a versioned CDN with Subresource Integrity (SRI) hash verification. This ensures:
+- The loaded script matches the expected content
+- Protection against CDN compromise or tampering
+- Verification of the script's authenticity
+
+Since this web client is served from a local server (localhost), the primary security concern is the integrity of external resources, which is addressed through SRI.
