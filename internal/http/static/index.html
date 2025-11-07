@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edubase Book Downloader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .books-list {
+            list-style: none;
+            padding: 0;
+        }
+        .book-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .book-info {
+            flex-grow: 1;
+        }
+        .progress {
+            margin-top: 10px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #28a745;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .status {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .status.pending { background: #ffc107; color: #000; }
+        .status.downloading { background: #17a2b8; color: #fff; }
+        .status.completed { background: #28a745; color: #fff; }
+        .status.failed { background: #dc3545; color: #fff; }
+        .log {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .log-entry {
+            margin: 2px 0;
+        }
+        input[type="number"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+            margin-right: 10px;
+        }
+        input[type="email"],
+        input[type="password"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: block;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Edubase Book Downloader</h1>
+        
+        <div class="section">
+            <h2>1. Session Status</h2>
+            <div id="sessionStatus">Initializing session...</div>
+        </div>
+
+        <div class="section">
+            <h2>2. Login to Edubase</h2>
+            <div>
+                <input type="email" id="email" placeholder="Email" style="width: 250px; margin-bottom: 10px;" />
+                <input type="password" id="password" placeholder="Password" style="width: 250px; margin-bottom: 10px;" />
+                <button id="loginBtn" disabled>Login</button>
+            </div>
+            <div id="loginStatus"></div>
+        </div>
+
+        <div class="section">
+            <h2>3. List Books</h2>
+            <button id="listBooks" disabled>Load Books</button>
+            <ul id="booksList" class="books-list"></ul>
+        </div>
+
+        <div class="section">
+            <h2>4. Download Book</h2>
+            <input type="number" id="bookId" placeholder="Enter Book ID" />
+            <button id="downloadBook" disabled>Start Download</button>
+            
+            <div id="downloadProgress" style="display: none;" class="progress">
+                <h3>Download Progress</h3>
+                <div>Job ID: <code id="jobId"></code></div>
+                <div>Status: <span id="status" class="status"></span></div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill">0%</div>
+                </div>
+                <div id="message"></div>
+                <button id="downloadPDF" style="display: none; margin-top: 10px;">Download PDF</button>
+            </div>
+
+            <div class="log" id="eventLog" style="display: none;">
+                <strong>Event Log:</strong>
+                <div id="logEntries"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let sessionId = null;
+        let currentJobId = null;
+        let eventSource = null;
+
+        const API_BASE = '/api';
+
+        // Initialize: Create session on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch(`${API_BASE}/session`, { method: 'POST' });
+                const data = await response.json();
+                sessionId = data.session_id;
+                
+                document.getElementById('sessionStatus').innerHTML = 
+                    `<div style="color: green; margin-top: 10px;">✓ Session created: ${sessionId}</div>`;
+                document.getElementById('loginBtn').disabled = false;
+            } catch (error) {
+                document.getElementById('sessionStatus').innerHTML = 
+                    `<div class="error">Failed to create session: ${error.message}</div>`;
+            }
+        });
+
+        // Helper to build API URLs with session_id query param
+        function apiUrl(path) {
+            return `${API_BASE}${path}?session_id=${sessionId}`;
+        }
+
+        // Login
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                alert('Please enter both email and password');
+                return;
+            }
+
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+
+            try {
+                const response = await fetch(apiUrl('/login'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('loginStatus').innerHTML = 
+                        `<div style="color: green; margin-top: 10px;">✓ ${data.message}</div>`;
+                    document.getElementById('listBooks').disabled = false;
+                    document.getElementById('email').disabled = true;
+                    document.getElementById('password').disabled = true;
+                    
+                    // Auto-load books after successful login
+                    setTimeout(() => {
+                        document.getElementById('listBooks').click();
+                    }, 500);
+                } else {
+                    document.getElementById('loginStatus').innerHTML = 
+                        `<div class="error">${data.message}</div>`;
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Login';
+                }
+            } catch (error) {
+                document.getElementById('loginStatus').innerHTML = 
+                    `<div class="error">Login failed: ${error.message}</div>`;
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login';
+            }
+        });
+
+        // List Books
+        document.getElementById('listBooks').addEventListener('click', async () => {
+            try {
+                const response = await fetch(apiUrl('/books'));
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const data = await response.json();
+                const booksList = document.getElementById('booksList');
+                booksList.innerHTML = '';
+                
+                data.books.forEach(book => {
+                    const li = document.createElement('li');
+                    li.className = 'book-item';
+                    li.innerHTML = `
+                        <div class="book-info">
+                            <strong>${book.Title}</strong><br>
+                            <small>ID: ${book.Id}</small>
+                        </div>
+                        <button onclick="selectBook(${book.Id})">Select</button>
+                    `;
+                    booksList.appendChild(li);
+                });
+                
+                document.getElementById('downloadBook').disabled = false;
+            } catch (error) {
+                document.getElementById('booksList').innerHTML = 
+                    `<div class="error">Failed to load books: ${error.message}</div>`;
+            }
+        });
+
+        // Select book
+        window.selectBook = (bookId) => {
+            document.getElementById('bookId').value = bookId;
+        };
+
+        // Download Book
+        document.getElementById('downloadBook').addEventListener('click', async () => {
+            const bookId = parseInt(document.getElementById('bookId').value);
+            if (!bookId) {
+                alert('Please enter a valid Book ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(apiUrl('/download'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ book_id: bookId })
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const data = await response.json();
+                currentJobId = data.job_id;
+                
+                document.getElementById('jobId').textContent = currentJobId;
+                document.getElementById('downloadProgress').style.display = 'block';
+                document.getElementById('eventLog').style.display = 'block';
+                document.getElementById('downloadBook').disabled = true;
+                
+                // Start SSE
+                startSSE(currentJobId);
+            } catch (error) {
+                alert(`Failed to start download: ${error.message}`);
+            }
+        });
+
+        // Start SSE for progress updates
+        function startSSE(jobId) {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            eventSource = new EventSource(apiUrl(`/download/${jobId}/events`));
+            
+            eventSource.onmessage = (event) => {
+                const progress = JSON.parse(event.data);
+                updateProgress(progress);
+                logEvent(progress);
+                
+                if (progress.status === 'completed' || progress.status === 'failed') {
+                    eventSource.close();
+                    document.getElementById('downloadBook').disabled = false;
+                    
+                    if (progress.status === 'completed') {
+                        document.getElementById('downloadPDF').style.display = 'block';
+                    }
+                }
+            };
+
+            eventSource.onerror = (error) => {
+                console.error('SSE error:', error);
+                eventSource.close();
+            };
+        }
+
+        // Update progress display
+        function updateProgress(progress) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = progress.status;
+            statusEl.className = `status ${progress.status}`;
+            
+            const percentage = progress.total_pages > 0 
+                ? Math.round((progress.progress / progress.total_pages) * 100)
+                : 0;
+            
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = percentage + '%';
+            progressFill.textContent = percentage + '%';
+            
+            document.getElementById('message').textContent = progress.message;
+        }
+
+        // Log event
+        function logEvent(progress) {
+            const logEntries = document.getElementById('logEntries');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const time = new Date(progress.timestamp).toLocaleTimeString();
+            entry.textContent = `[${time}] ${progress.status}: ${progress.message}`;
+            logEntries.insertBefore(entry, logEntries.firstChild);
+            
+            // Keep only last 50 entries
+            while (logEntries.children.length > 50) {
+                logEntries.removeChild(logEntries.lastChild);
+            }
+        }
+
+        // Download PDF
+        document.getElementById('downloadPDF').addEventListener('click', () => {
+            window.location.href = apiUrl(`/download/${currentJobId}/pdf`);
+        });
+    </script>
+</body>
+</html>
