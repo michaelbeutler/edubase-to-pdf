@@ -4,177 +4,165 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edubase Book Downloader</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#8b5cf6',
+                    }
+                }
+            }
         }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-        }
-        .section {
-            margin-bottom: 30px;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        .books-list {
-            list-style: none;
-            padding: 0;
-        }
-        .book-item {
-            padding: 10px;
-            margin: 5px 0;
-            background: #f8f9fa;
-            border-radius: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .book-info {
-            flex-grow: 1;
-        }
-        .progress {
-            margin-top: 10px;
-            padding: 15px;
-            background: #e9ecef;
-            border-radius: 4px;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 30px;
-            background-color: #e9ecef;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-        .progress-fill {
-            height: 100%;
-            background-color: #28a745;
-            transition: width 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-        .status {
-            font-weight: bold;
-            padding: 5px 10px;
-            border-radius: 4px;
-            display: inline-block;
-            margin-top: 10px;
-        }
-        .status.pending { background: #ffc107; color: #000; }
-        .status.downloading { background: #17a2b8; color: #fff; }
-        .status.completed { background: #28a745; color: #fff; }
-        .status.failed { background: #dc3545; color: #fff; }
-        .log {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 4px;
-            max-height: 200px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 12px;
-            margin-top: 10px;
-        }
-        .log-entry {
-            margin: 2px 0;
-        }
-        input[type="number"] {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            width: 200px;
-            margin-right: 10px;
-        }
-        input[type="email"],
-        input[type="password"] {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            display: block;
-        }
-        .error {
-            color: #dc3545;
-            background: #f8d7da;
-            padding: 10px;
-            border-radius: 4px;
-            margin-top: 10px;
-        }
-    </style>
+    </script>
 </head>
-<body>
-    <div class="container">
-        <h1>📚 Edubase Book Downloader</h1>
-        
-        <div class="section">
-            <h2>1. Session Status</h2>
-            <div id="sessionStatus">Initializing session...</div>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen py-8 px-4">
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen py-8 px-4">
+    <!-- Main Container -->
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
+                <span class="text-6xl">📚</span>
+                Edubase Book Downloader
+            </h1>
+            <p class="text-gray-600 text-lg">Download and convert books to PDF with ease</p>
         </div>
 
-        <div class="section">
-            <h2>2. Login to Edubase</h2>
-            <div>
-                <input type="email" id="email" placeholder="Email" style="width: 250px; margin-bottom: 10px;" />
-                <input type="password" id="password" placeholder="Password" style="width: 250px; margin-bottom: 10px;" />
-                <button id="loginBtn" disabled>Login</button>
-            </div>
-            <div id="loginStatus"></div>
-        </div>
-
-        <div class="section">
-            <h2>3. List Books</h2>
-            <button id="listBooks" disabled>Load Books</button>
-            <ul id="booksList" class="books-list"></ul>
-        </div>
-
-        <div class="section">
-            <h2>4. Download Book</h2>
-            <input type="number" id="bookId" placeholder="Enter Book ID" />
-            <button id="downloadBook" disabled>Start Download</button>
-            
-            <div id="downloadProgress" style="display: none;" class="progress">
-                <h3>Download Progress</h3>
-                <div>Job ID: <code id="jobId"></code></div>
-                <div>Status: <span id="status" class="status"></span></div>
-                <div class="progress-bar">
-                    <div id="progressFill" class="progress-fill">0%</div>
+        <!-- Session Status Card -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <span class="text-2xl">🔑</span>
                 </div>
-                <div id="message"></div>
-                <button id="downloadPDF" style="display: none; margin-top: 10px;">Download PDF</button>
+                <h2 class="text-2xl font-semibold text-gray-800">Session Status</h2>
+            </div>
+            <div id="sessionStatus" class="text-gray-600 flex items-center gap-2">
+                <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Initializing session...
+            </div>
+        </div>
+
+        <!-- Login Card -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <span class="text-2xl">🔐</span>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-800">Login to Edubase</h2>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" id="email" placeholder="Enter your email" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none" />
+                </div>
+                <button id="loginBtn" disabled
+                        class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold py-3 px-6 rounded-lg hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-md">
+                    Login
+                </button>
+            </div>
+            <div id="loginStatus" class="mt-4"></div>
+        </div>
+
+        <!-- Books List Card -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <span class="text-2xl">📖</span>
+                    </div>
+                    <h2 class="text-2xl font-semibold text-gray-800">Available Books</h2>
+                </div>
+                <button id="listBooks" disabled
+                        class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-md">
+                    Load Books
+                </button>
+            </div>
+            <ul id="booksList" class="space-y-2 mt-4"></ul>
+        </div>
+
+        <!-- Download Book Card -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <span class="text-2xl">⬇️</span>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-800">Download Book</h2>
+            </div>
+            <div class="flex gap-3">
+                <input type="number" id="bookId" placeholder="Enter Book ID"
+                       class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none" />
+                <button id="downloadBook" disabled
+                        class="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 px-8 rounded-lg disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all shadow-md">
+                    Start Download
+                </button>
+            </div>
+            
+            <!-- Progress Section -->
+            <div id="downloadProgress" style="display: none;" class="mt-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Download Progress</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-gray-600">Job ID:</span>
+                        <code id="jobId" class="text-sm bg-white px-3 py-1 rounded border border-gray-300 font-mono"></code>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-gray-600">Status:</span>
+                        <span id="status" class="status-badge"></span>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-8 overflow-hidden shadow-inner">
+                        <div id="progressFill" class="h-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center text-white font-bold text-sm transition-all duration-300 ease-out" style="width: 0%">
+                            0%
+                        </div>
+                    </div>
+                    
+                    <div id="message" class="text-gray-700 font-medium"></div>
+                    
+                    <button id="downloadPDF" style="display: none;"
+                            class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition-all shadow-md transform hover:scale-[1.02] active:scale-[0.98]">
+                        📄 Download PDF
+                    </button>
+                </div>
             </div>
 
-            <div class="log" id="eventLog" style="display: none;">
-                <strong>Event Log:</strong>
-                <div id="logEntries"></div>
+            <!-- Event Log -->
+            <div id="eventLog" style="display: none;" class="mt-4 bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-xs max-h-64 overflow-y-auto shadow-inner">
+                <div class="font-bold text-green-300 mb-2 text-sm">📋 Event Log:</div>
+                <div id="logEntries" class="space-y-1"></div>
             </div>
         </div>
     </div>
+
+    <style>
+        .status-badge {
+            @apply font-semibold px-3 py-1 rounded-full text-sm inline-block;
+        }
+        .status-pending {
+            @apply bg-yellow-100 text-yellow-800 border border-yellow-300;
+        }
+        .status-downloading {
+            @apply bg-blue-100 text-blue-800 border border-blue-300;
+        }
+        .status-completed {
+            @apply bg-green-100 text-green-800 border border-green-300;
+        }
+        .status-failed {
+            @apply bg-red-100 text-red-800 border border-red-300;
+        }
+    </style>
 
     <script>
         let sessionId = null;
@@ -183,19 +171,133 @@
 
         const API_BASE = '/api';
 
-        // Initialize: Create session on page load
+        // Helper to get/set session ID in URL
+        function getSessionFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('session_id');
+        }
+
+        function setSessionInUrl(sessionId) {
+            const url = new URL(window.location);
+            url.searchParams.set('session_id', sessionId);
+            window.history.replaceState({}, '', url);
+        }
+
+        // LocalStorage helpers for persistence
+        function saveLoginState(isLoggedIn) {
+            localStorage.setItem(`logged_in_${sessionId}`, isLoggedIn);
+        }
+
+        function isLoggedIn() {
+            return localStorage.getItem(`logged_in_${sessionId}`) === 'true';
+        }
+
+        function saveBooks(books) {
+            localStorage.setItem(`books_${sessionId}`, JSON.stringify(books));
+        }
+
+        function getSavedBooks() {
+            const saved = localStorage.getItem(`books_${sessionId}`);
+            return saved ? JSON.parse(saved) : null;
+        }
+
+        // Restore UI state based on session
+        async function restoreState() {
+            if (isLoggedIn()) {
+                // Restore logged-in state
+                document.getElementById('loginStatus').innerHTML = 
+                    `<div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="font-semibold">Already logged in (session restored)</span>
+                    </div>`;
+                document.getElementById('listBooks').disabled = false;
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('email').style.display = 'none';
+                document.getElementById('password').style.display = 'none';
+
+                // Restore books if available
+                const savedBooks = getSavedBooks();
+                if (savedBooks && savedBooks.length > 0) {
+                    displayBooks(savedBooks);
+                    document.getElementById('downloadBook').disabled = false;
+                }
+            }
+        }
+
+        // Display books in the UI
+        function displayBooks(books) {
+            const booksList = document.getElementById('booksList');
+            booksList.innerHTML = '';
+            
+            if (books && books.length > 0) {
+                books.forEach(book => {
+                    const li = document.createElement('li');
+                    li.className = 'group';
+                    li.innerHTML = `
+                        <div class="flex items-center justify-between p-4 bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-all cursor-pointer">
+                            <div class="flex-1">
+                                <div class="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">${book.Title}</div>
+                                <div class="text-sm text-gray-500 mt-1">ID: <code class="bg-white px-2 py-0.5 rounded text-xs border">${book.Id}</code></div>
+                            </div>
+                            <button onclick="selectBook(${book.Id})" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-all shadow-sm">
+                                Select
+                            </button>
+                        </div>
+                    `;
+                    booksList.appendChild(li);
+                });
+            } else {
+                booksList.innerHTML = '<div class="text-gray-500 text-center py-8">No books found</div>';
+            }
+        }
+
+        // Initialize: Create or restore session on page load
         window.addEventListener('DOMContentLoaded', async () => {
             try {
-                const response = await fetch(`${API_BASE}/session`, { method: 'POST' });
-                const data = await response.json();
-                sessionId = data.session_id;
+                // Check if session ID exists in URL
+                const urlSessionId = getSessionFromUrl();
                 
-                document.getElementById('sessionStatus').innerHTML = 
-                    `<div style="color: green; margin-top: 10px;">✓ Session created: ${sessionId}</div>`;
+                if (urlSessionId) {
+                    // Use existing session from URL
+                    sessionId = urlSessionId;
+                    document.getElementById('sessionStatus').innerHTML = 
+                        `<div class="flex items-center gap-2 text-green-600">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-semibold">Session Restored:</span>
+                            <code class="text-xs bg-green-50 px-2 py-1 rounded border border-green-200">${sessionId}</code>
+                        </div>`;
+                    
+                    // Restore previous state
+                    await restoreState();
+                } else {
+                    // Create new session
+                    const response = await fetch(`${API_BASE}/session`, { method: 'POST' });
+                    const data = await response.json();
+                    sessionId = data.session_id;
+                    
+                    // Save session ID to URL
+                    setSessionInUrl(sessionId);
+                    
+                    document.getElementById('sessionStatus').innerHTML = 
+                        `<div class="flex items-center gap-2 text-green-600">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-semibold">Session Active:</span>
+                            <code class="text-xs bg-green-50 px-2 py-1 rounded border border-green-200">${sessionId}</code>
+                        </div>`;
+                }
+                
                 document.getElementById('loginBtn').disabled = false;
             } catch (error) {
                 document.getElementById('sessionStatus').innerHTML = 
-                    `<div class="error">Failed to create session: ${error.message}</div>`;
+                    `<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                        <strong class="font-semibold">Error:</strong> ${error.message}
+                    </div>`;
             }
         });
 
@@ -228,8 +330,16 @@
                 const data = await response.json();
 
                 if (data.success) {
+                    // Save login state
+                    saveLoginState(true);
+                    
                     document.getElementById('loginStatus').innerHTML = 
-                        `<div style="color: green; margin-top: 10px;">✓ ${data.message}</div>`;
+                        `<div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-semibold">${data.message}</span>
+                        </div>`;
                     document.getElementById('listBooks').disabled = false;
                     document.getElementById('email').disabled = true;
                     document.getElementById('password').disabled = true;
@@ -240,13 +350,17 @@
                     }, 500);
                 } else {
                     document.getElementById('loginStatus').innerHTML = 
-                        `<div class="error">${data.message}</div>`;
+                        `<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                            <strong class="font-semibold">Error:</strong> ${data.message}
+                        </div>`;
                     loginBtn.disabled = false;
                     loginBtn.textContent = 'Login';
                 }
             } catch (error) {
                 document.getElementById('loginStatus').innerHTML = 
-                    `<div class="error">Login failed: ${error.message}</div>`;
+                    `<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                        <strong class="font-semibold">Login Failed:</strong> ${error.message}
+                    </div>`;
                 loginBtn.disabled = false;
                 loginBtn.textContent = 'Login';
             }
@@ -254,31 +368,36 @@
 
         // List Books
         document.getElementById('listBooks').addEventListener('click', async () => {
+            const listBooksBtn = document.getElementById('listBooks');
+            listBooksBtn.textContent = 'Loading...';
+            listBooksBtn.disabled = true;
+            
             try {
                 const response = await fetch(apiUrl('/books'));
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
                 const data = await response.json();
-                const booksList = document.getElementById('booksList');
-                booksList.innerHTML = '';
                 
-                data.books.forEach(book => {
-                    const li = document.createElement('li');
-                    li.className = 'book-item';
-                    li.innerHTML = `
-                        <div class="book-info">
-                            <strong>${book.Title}</strong><br>
-                            <small>ID: ${book.Id}</small>
-                        </div>
-                        <button onclick="selectBook(${book.Id})">Select</button>
-                    `;
-                    booksList.appendChild(li);
-                });
+                if (data.books && data.books.length > 0) {
+                    // Save books to localStorage
+                    saveBooks(data.books);
+                    
+                    // Display books
+                    displayBooks(data.books);
+                    document.getElementById('downloadBook').disabled = false;
+                } else {
+                    document.getElementById('booksList').innerHTML = '<div class="text-gray-500 text-center py-8">No books found</div>';
+                }
                 
-                document.getElementById('downloadBook').disabled = false;
+                listBooksBtn.textContent = 'Refresh Books';
+                listBooksBtn.disabled = false;
             } catch (error) {
                 document.getElementById('booksList').innerHTML = 
-                    `<div class="error">Failed to load books: ${error.message}</div>`;
+                    `<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                        <strong class="font-semibold">Error:</strong> Failed to load books: ${error.message}
+                    </div>`;
+                listBooksBtn.textContent = 'Load Books';
+                listBooksBtn.disabled = false;
             }
         });
 
@@ -351,8 +470,8 @@
         // Update progress display
         function updateProgress(progress) {
             const statusEl = document.getElementById('status');
-            statusEl.textContent = progress.status;
-            statusEl.className = `status ${progress.status}`;
+            statusEl.textContent = progress.status.toUpperCase();
+            statusEl.className = `status-badge status-${progress.status}`;
             
             const percentage = progress.total_pages > 0 
                 ? Math.round((progress.progress / progress.total_pages) * 100)
@@ -369,9 +488,9 @@
         function logEvent(progress) {
             const logEntries = document.getElementById('logEntries');
             const entry = document.createElement('div');
-            entry.className = 'log-entry';
+            entry.className = 'opacity-90 hover:opacity-100 transition-opacity';
             const time = new Date(progress.timestamp).toLocaleTimeString();
-            entry.textContent = `[${time}] ${progress.status}: ${progress.message}`;
+            entry.textContent = `[${time}] ${progress.status.toUpperCase()}: ${progress.message}`;
             logEntries.insertBefore(entry, logEntries.firstChild);
             
             // Keep only last 50 entries
