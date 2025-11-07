@@ -39,6 +39,8 @@ type Session struct {
 type DownloadJob struct {
 	ID           string
 	BookID       int
+	Width        int
+	Height       int
 	Status       string // pending, downloading, completed, failed
 	Progress     int    // current page number
 	TotalPages   int
@@ -78,6 +80,8 @@ type LoginResponse struct {
 
 type StartDownloadRequest struct {
 	BookID int `json:"book_id"`
+	Width  int `json:"width,omitempty"`
+	Height int `json:"height,omitempty"`
 }
 
 type StartDownloadResponse struct {
@@ -284,12 +288,25 @@ func (s *Server) StartDownloadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Create new job
 	jobID := uuid.New().String()
+
+	// Set default resolution if not provided (4K)
+	width := req.Width
+	height := req.Height
+	if width <= 0 {
+		width = 3840 // 4K default
+	}
+	if height <= 0 {
+		height = 2160 // 4K default
+	}
+
 	job := &DownloadJob{
 		ID:           jobID,
 		BookID:       req.BookID,
+		Width:        width,
+		Height:       height,
 		Status:       "pending",
 		Progress:     0,
-		Message:      "Download queued",
+		Message:      fmt.Sprintf("Download queued (Resolution: %dx%d)", width, height),
 		StartedAt:    time.Now(),
 		eventClients: make([]chan ProgressEvent, 0),
 	}
@@ -324,6 +341,15 @@ func (s *Server) processDownload(session *Session, job *DownloadJob) {
 	job.Status = "downloading"
 	job.Message = "Starting download"
 	s.broadcastProgress(job)
+
+	// Set viewport size for better quality screenshots
+	if err := session.page.SetViewportSize(job.Width, job.Height); err != nil {
+		job.Status = "failed"
+		job.Error = fmt.Sprintf("Failed to set viewport size: %v", err)
+		job.Message = "Failed to set viewport size"
+		s.broadcastProgress(job)
+		return
+	}
 
 	// Create book provider
 	bookProvider := edubase.NewBookProvider(session.page, job.BookID)
