@@ -13,12 +13,15 @@ Schau dir diese Demo an, um edubase-to-pdf in Aktion zu sehen! 👇
 
 - 🔍 **Einfach**: Nutze ein einziges Tool, um alle deine eBooks herunterzuladen.  
 - 📚 **PDF**: Speichere deine eBooks als PDF-Dateien für leichten Zugriff.  
-- 📧 **Sicher**: Melde dich mit deiner Edubase-E-Mail und deinem Passwort sicher an.  
+- 📄 **A4-Format**: Alle PDFs werden automatisch ins A4-Format (300 DPI) konvertiert für professionelle Druckqualität.  
+- 🔍 **Durchsuchbar**: Text wird direkt aus dem HTML extrahiert und als unsichtbare Ebene eingebettet - PDFs sind vollständig durchsuchbar und Text ist selektierbar!  
+- 🌐 **HTTP-Server**: Moderne Web-UI mit Tailwind CSS für komfortable Bedienung.  
+- � **Sicher**: Melde dich mit deiner Edubase-E-Mail und deinem Passwort sicher an.  
 - ➡ **Anpassbar**: Wähle die Startseite und die Anzahl der zu importierenden Seiten.  
 - 📂 **Temporäres Verzeichnis**: Gib ein temporäres Verzeichnis für Screenshots an.  
 - ⏳ **Seiten-Verzögerung**: Lege eine Wartezeit zwischen den Seiten fest, damit der Browser laden kann.  
-- 🔎 **Browsergröße**: Passe Breite und Höhe des Browsers an, um die Screenshot-Qualität zu verbessern.  
-- 😵‍💫 **Leichtgewichtig**: Einzelne ausführbare Datei, kein Ballast wie Python-Skripte. 😉  
+- 🔎 **Browsergröße**: Passe Breite und Höhe des Browsers an (inkl. 4K-Preset für beste Qualität).  
+- 😵‍💫 **Leichtgewichtig**: Einzelne ausführbare Datei, kein Ballast wie Python-Skripte. 😉
 
 ## 📦 Installation
 
@@ -68,13 +71,40 @@ docker run -v ./ ghcr.io/michaelbeutler/edubase-to-pdf edubase-to-pdf import
 
 ## Beispiel 🧾👆
 
-So kannst du das Tool verwenden:  
+### CLI-Nutzung
+
+So kannst du das Tool in der Kommandozeile verwenden:  
 
 ```shell
 edubase-to-pdf import -e deine_email@example.com -p dein_passwort -s 2 -m 10
 ```
 
 In diesem Beispiel meldet sich das Tool mit der angegebenen E-Mail und dem Passwort bei Edubase an. Es beginnt ab Seite 2 und importiert maximal 10 Seiten. Das Ergebnis wird als PDF im aktuellen Verzeichnis gespeichert. 🎉📚
+
+### HTTP-Server
+
+Starte den Web-Server für eine komfortable Bedienung über die Browser-UI:
+
+```shell
+edubase-to-pdf server
+```
+
+Der Server läuft standardmäßig auf `http://localhost:8080` und bietet:
+
+- 🎨 **Moderne Web-UI** mit Tailwind CSS
+- 📊 **Echtzeit-Fortschritt** über Server-Sent Events (SSE)
+- 🔐 **Session-Management** mit URL-basierten Sessions
+- 💾 **Persistenz** - Login-Status und Bücherliste bleiben bei Seitenaktualisierung erhalten
+- 🖼️ **Auflösungs-Presets** - Full HD, 2K, 4K (empfohlen), 5K
+- 📄 **A4-Konvertierung** - Alle PDFs werden automatisch ins A4-Format (300 DPI) konvertiert
+
+**API-Endpunkte:**
+- `GET /api/books` - Liste verfügbare Bücher
+- `POST /api/download/start` - Starte Download (mit `width` und `height` Parametern)
+- `GET /api/download/status` - Prüfe Download-Status
+- `GET /api/download/pdf/:sessionId` - Lade fertiges PDF herunter
+- `GET /api/download/progress/:sessionId` - SSE-Stream für Echtzeit-Fortschritt
+- `POST /api/login` - Einloggen bei Edubase
 
 ## Kontakt 🤔💬
 
