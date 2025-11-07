@@ -47,21 +47,35 @@ func (b *BookProvider) GetTotalPages() (int, error) {
 	// Wait for the element to be visible with a timeout
 	if err := paginationLocator.WaitFor(playwright.LocatorWaitForOptions{
 		State:   playwright.WaitForSelectorStateVisible,
-		Timeout: playwright.Float(5000), // 5 second timeout
+		Timeout: playwright.Float(10000), // 10 second timeout
 	}); err != nil {
 		return 0, fmt.Errorf("pagination element not found or not visible: %v", err)
 	}
 
-	rawTotalPages, err := paginationLocator.InnerText()
-	if err != nil {
-		return 0, fmt.Errorf("could not get max page number: %v", err)
+	// Retry getting the text until it contains numbers (max 10 attempts)
+	var rawTotalPages string
+	var err error
+	re := regexp.MustCompile("[0-9]+")
+
+	for i := 0; i < 10; i++ {
+		rawTotalPages, err = paginationLocator.InnerText()
+		if err != nil {
+			return 0, fmt.Errorf("could not get max page number: %v", err)
+		}
+
+		// Check if we have numbers
+		if re.MatchString(rawTotalPages) {
+			break
+		}
+
+		// Wait a bit before retrying
+		time.Sleep(500 * time.Millisecond)
 	}
 
-	re := regexp.MustCompile("[0-9]+")
 	totalPagesString := re.FindAllString(rawTotalPages, -1)
 
 	if len(totalPagesString) == 0 {
-		return 0, fmt.Errorf("could not find max page number in pagination text: %q (element may not be fully loaded)", rawTotalPages)
+		return 0, fmt.Errorf("could not find max page number in pagination text: %q (element loaded but content not populated after retries)", rawTotalPages)
 	}
 
 	totalPages, err := strconv.Atoi(totalPagesString[0])
