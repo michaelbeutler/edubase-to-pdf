@@ -41,7 +41,18 @@ func (b *BookProvider) Open(page int) error {
 func (b *BookProvider) GetTotalPages() (int, error) {
 	time.Sleep(b.initialDelay)
 
-	rawTotalPages, err := b.page.Locator("#pagination > div > span").First().InnerText()
+	// Wait for the pagination element to be visible and contain numbers
+	paginationLocator := b.page.Locator("#pagination > div > span").First()
+
+	// Wait for the element to be visible with a timeout
+	if err := paginationLocator.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(5000), // 5 second timeout
+	}); err != nil {
+		return 0, fmt.Errorf("pagination element not found or not visible: %v", err)
+	}
+
+	rawTotalPages, err := paginationLocator.InnerText()
 	if err != nil {
 		return 0, fmt.Errorf("could not get max page number: %v", err)
 	}
@@ -50,7 +61,7 @@ func (b *BookProvider) GetTotalPages() (int, error) {
 	totalPagesString := re.FindAllString(rawTotalPages, -1)
 
 	if len(totalPagesString) == 0 {
-		return 0, fmt.Errorf("could not find max page number: %s", rawTotalPages)
+		return 0, fmt.Errorf("could not find max page number in pagination text: %q (element may not be fully loaded)", rawTotalPages)
 	}
 
 	totalPages, err := strconv.Atoi(totalPagesString[0])
