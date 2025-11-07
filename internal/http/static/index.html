@@ -35,7 +35,7 @@
                 </div>
                 <div class="flex items-center gap-4">
                     <!-- Page Navigation -->
-                    <div id="pageNavigation" class="hidden flex items-center gap-2 text-sm">
+                    <div id="pageNavigation" class="hidden items-center gap-2 text-sm">
                         <button onclick="navigateTo('library')" id="navLibrary" class="px-4 py-2 rounded-lg font-medium transition-all text-gray-600 hover:text-gray-900 hover:bg-gray-100">
                             <i class="fas fa-books mr-1"></i>Library
                         </button>
@@ -453,7 +453,9 @@
                 selectedBook = null;
                 
                 // Hide navigation
-                document.getElementById('pageNavigation').classList.add('hidden');
+                const nav = document.getElementById('pageNavigation');
+                nav.classList.add('hidden');
+                nav.classList.remove('flex');
                 
                 // Reset and show login page
                 navigateTo('login');
@@ -580,7 +582,9 @@
         async function restoreState() {
             if (isLoggedIn()) {
                 // Show navigation
-                document.getElementById('pageNavigation').classList.remove('hidden');
+                const nav = document.getElementById('pageNavigation');
+                nav.classList.remove('hidden');
+                nav.classList.add('flex');
                 
                 // Skip login page and go to library
                 navigateTo('library');
@@ -731,7 +735,9 @@
                         </div>`;
                     
                     // Show navigation
-                    document.getElementById('pageNavigation').classList.remove('hidden');
+                    const nav = document.getElementById('pageNavigation');
+                    nav.classList.remove('hidden');
+                    nav.classList.add('flex');
                     
                     // Navigate to library after short delay
                     setTimeout(() => {

@@ -60,11 +60,20 @@ func (s *Server) SetupRoutes() *http.ServeMux {
 		}
 
 		sessionID := s.CreateSession()
+		// Set Secure flag only when the request was received over TLS.
+		// This ensures cookies are marked Secure in production (HTTPS)
+		// while still allowing local development over HTTP (e.g., localhost).
+		secureFlag := false
+		if r.TLS != nil {
+			secureFlag = true
+		}
+
 		http.SetCookie(w, &http.Cookie{
 			Name:     "session_id",
 			Value:    sessionID,
 			Path:     "/",
 			HttpOnly: true,
+			Secure:   secureFlag,
 			SameSite: http.SameSiteStrictMode,
 		})
 

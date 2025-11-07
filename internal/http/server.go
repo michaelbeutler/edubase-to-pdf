@@ -443,6 +443,12 @@ func (s *Server) processDownload(session *Session, job *DownloadJob) {
 			return
 		}
 
+		// Extract text from current page for searchable PDF
+		pageText, err := bookProvider.GetPageText()
+		if err == nil && pageText != "" {
+			ocrTexts[pageIndex-1] = pageText
+		}
+
 		// Go to next page if not the last page in range
 		if pageNum < endPage {
 			if err := bookProvider.NextPage(); err != nil {
