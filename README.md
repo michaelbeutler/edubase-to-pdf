@@ -100,10 +100,10 @@ Der Server läuft standardmäßig auf `http://localhost:8080` und bietet:
 
 **API-Endpunkte:**
 - `GET /api/books` - Liste verfügbare Bücher
-- `POST /api/download/start` - Starte Download (mit `width` und `height` Parametern)
-- `GET /api/download/status` - Prüfe Download-Status
-- `GET /api/download/pdf/:sessionId` - Lade fertiges PDF herunter
-- `GET /api/download/progress/:sessionId` - SSE-Stream für Echtzeit-Fortschritt
+- `POST /api/download` - Starte Download (mit `width` und `height` Parametern)
+- `GET /api/download/:jobId` - Prüfe Download-Status
+- `GET /api/download/:jobId/pdf` - Lade fertiges PDF herunter
+- `GET /api/download/:jobId/events` - SSE-Stream für Echtzeit-Fortschritt
 - `POST /api/login` - Einloggen bei Edubase
 
 ## Kontakt 🤔💬
