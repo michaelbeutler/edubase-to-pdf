@@ -3,6 +3,8 @@ package http
 import (
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/jpeg"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -11,10 +13,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jung-kurt/gofpdf"
 	"github.com/michaelbeutler/edubase-to-pdf/pkg/edubase"
-	pdfcpu "github.com/pdfcpu/pdfcpu/pkg/api"
-	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 	"github.com/playwright-community/playwright-go"
+	"golang.org/x/image/draw"
 )
 
 // Server represents the HTTP server with session management
@@ -388,10 +390,22 @@ func (s *Server) processDownload(session *Session, job *DownloadJob) {
 	}
 
 	// Download each page
+	ocrTexts := make([]string, totalPages)
+
 	for i := 1; i <= totalPages; i++ {
 		job.Progress = i
 		job.Message = fmt.Sprintf("Downloading page %d of %d", i, totalPages)
 		s.broadcastProgress(job)
+
+		// Extract text from the page BEFORE taking screenshot
+		pageText, err := bookProvider.GetPageText()
+		if err != nil {
+			fmt.Printf("Warning: Failed to extract text from page %d: %v\n", i, err)
+			ocrTexts[i-1] = ""
+		} else {
+			fmt.Printf("Extracted %d characters from page %d\n", len(pageText), i)
+			ocrTexts[i-1] = pageText
+		}
 
 		filename := filepath.Join(tempDir, fmt.Sprintf("page_%03d.jpg", i))
 		if err := bookProvider.Screenshot(filename); err != nil {
@@ -422,16 +436,47 @@ func (s *Server) processDownload(session *Session, job *DownloadJob) {
 	s.broadcastProgress(job)
 
 	pdfPath := filepath.Join(tempDir, fmt.Sprintf("book_%d.pdf", job.BookID))
+	a4Dir := filepath.Join(tempDir, "a4")
 
-	// Collect all image paths
-	var imagePaths []string
-	for i := 1; i <= totalPages; i++ {
-		imagePath := filepath.Join(tempDir, fmt.Sprintf("page_%03d.jpg", i))
-		imagePaths = append(imagePaths, imagePath)
+	// Create A4 directory for converted images
+	if err := os.MkdirAll(a4Dir, 0755); err != nil {
+		job.Status = "failed"
+		job.Error = fmt.Sprintf("Failed to create A4 directory: %v", err)
+		job.Message = "Failed to create A4 directory"
+		s.broadcastProgress(job)
+		return
 	}
 
-	// Import images into PDF
-	if err := pdfcpu.ImportImagesFile(imagePaths, pdfPath, nil, model.NewDefaultConfiguration()); err != nil {
+	// Convert images to A4 format
+	job.Message = "Converting images to A4 format"
+	s.broadcastProgress(job)
+
+	var a4ImagePaths []string
+
+	for i := 1; i <= totalPages; i++ {
+		job.Progress = i
+		job.Message = fmt.Sprintf("Converting to A4: page %d of %d", i, totalPages)
+		s.broadcastProgress(job)
+
+		srcPath := filepath.Join(tempDir, fmt.Sprintf("page_%03d.jpg", i))
+		dstPath := filepath.Join(a4Dir, fmt.Sprintf("a4_page_%03d.jpg", i))
+
+		if err := convertToA4(srcPath, dstPath); err != nil {
+			job.Status = "failed"
+			job.Error = fmt.Sprintf("Failed to convert page %d to A4: %v", i, err)
+			job.Message = fmt.Sprintf("Failed to convert page %d", i)
+			s.broadcastProgress(job)
+			return
+		}
+
+		a4ImagePaths = append(a4ImagePaths, dstPath)
+	}
+
+	// Create PDF with A4 page size and searchable text
+	job.Message = "Generating PDF with A4 pages and searchable text"
+	s.broadcastProgress(job)
+
+	if err := createSearchablePDF(pdfPath, a4ImagePaths, ocrTexts); err != nil {
 		job.Status = "failed"
 		job.Error = fmt.Sprintf("Failed to create PDF: %v", err)
 		job.Message = "Failed to create PDF"
@@ -441,9 +486,74 @@ func (s *Server) processDownload(session *Session, job *DownloadJob) {
 
 	job.PDFPath = pdfPath
 	job.Status = "completed"
-	job.Message = "Download completed"
+	job.Message = fmt.Sprintf("Download completed - %d pages in A4 format with searchable text", totalPages)
 	job.CompletedAt = time.Now()
 	s.broadcastProgress(job)
+}
+
+// convertToA4 converts an image to A4 format (595x842 points = 2480x3508 pixels at 300 DPI)
+func convertToA4(srcPath, dstPath string) error {
+	// Open source image
+	srcFile, err := os.Open(srcPath)
+	if err != nil {
+		return fmt.Errorf("failed to open source image: %v", err)
+	}
+	defer srcFile.Close()
+
+	srcImg, _, err := image.Decode(srcFile)
+	if err != nil {
+		return fmt.Errorf("failed to decode source image: %v", err)
+	}
+
+	// A4 dimensions at 300 DPI (good print quality)
+	const a4Width = 2480
+	const a4Height = 3508
+
+	// Calculate scaling to fit within A4 while maintaining aspect ratio
+	srcBounds := srcImg.Bounds()
+	srcWidth := srcBounds.Dx()
+	srcHeight := srcBounds.Dy()
+
+	scaleX := float64(a4Width) / float64(srcWidth)
+	scaleY := float64(a4Height) / float64(srcHeight)
+	scale := scaleX
+	if scaleY < scaleX {
+		scale = scaleY
+	}
+
+	newWidth := int(float64(srcWidth) * scale)
+	newHeight := int(float64(srcHeight) * scale)
+
+	// Create A4 canvas (white background)
+	a4Img := image.NewRGBA(image.Rect(0, 0, a4Width, a4Height))
+
+	// Fill with white background
+	for y := 0; y < a4Height; y++ {
+		for x := 0; x < a4Width; x++ {
+			a4Img.Set(x, y, image.White)
+		}
+	}
+
+	// Calculate position to center the scaled image
+	offsetX := (a4Width - newWidth) / 2
+	offsetY := (a4Height - newHeight) / 2
+
+	// Scale and draw the source image centered on A4 canvas
+	dstRect := image.Rect(offsetX, offsetY, offsetX+newWidth, offsetY+newHeight)
+	draw.CatmullRom.Scale(a4Img, dstRect, srcImg, srcBounds, draw.Over, nil)
+
+	// Save the result
+	dstFile, err := os.Create(dstPath)
+	if err != nil {
+		return fmt.Errorf("failed to create destination file: %v", err)
+	}
+	defer dstFile.Close()
+
+	if err := jpeg.Encode(dstFile, a4Img, &jpeg.Options{Quality: 95}); err != nil {
+		return fmt.Errorf("failed to encode image: %v", err)
+	}
+
+	return nil
 }
 
 // broadcastProgress sends progress updates to all SSE clients
@@ -626,4 +736,61 @@ func (s *Server) SSEHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+}
+
+// createSearchablePDF creates a PDF with images and invisible searchable text layer using gofpdf
+func createSearchablePDF(pdfPath string, imagePaths []string, texts []string) error {
+	fmt.Printf("Creating searchable PDF with %d images and %d text extracts\n", len(imagePaths), len(texts))
+
+	pdf := gofpdf.New("P", "mm", "A4", "")
+
+	// A4 dimensions in mm
+	const pageWidth = 210.0
+	const pageHeight = 297.0
+
+	for i, imgPath := range imagePaths {
+		// Add a new page
+		pdf.AddPage()
+
+		// Add the image - it will be scaled to fit the page
+		pdf.ImageOptions(imgPath, 0, 0, pageWidth, pageHeight, false, gofpdf.ImageOptions{
+			ImageType: "JPEG",
+			ReadDpi:   true,
+		}, 0, "")
+
+		// Add invisible text layer if we have text for this page
+		if i < len(texts) && texts[i] != "" {
+			fmt.Printf("Adding %d characters of text to page %d\n", len(texts[i]), i+1)
+
+			// Set text rendering mode to invisible (mode 3)
+			// In gofpdf, we can't directly set rendering mode to 3,
+			// but we can add white text on white background
+			pdf.SetTextColor(255, 255, 255) // White text
+			pdf.SetFont("Arial", "", 1)     // Very small font
+			pdf.SetXY(0, 0)
+
+			// Add the text as a multi-cell which makes it selectable
+			// Split into smaller chunks to avoid issues
+			lines := strings.Split(texts[i], "\n")
+			yPos := 0.0
+			for _, line := range lines {
+				if line != "" && yPos < pageHeight {
+					pdf.SetXY(0, yPos)
+					// Use MultiCell for better text wrapping
+					pdf.MultiCell(pageWidth, 1, line, "", "", false)
+					yPos += 1
+				}
+			}
+		} else {
+			fmt.Printf("No text available for page %d\n", i+1)
+		}
+	}
+
+	// Save the PDF
+	if err := pdf.OutputFileAndClose(pdfPath); err != nil {
+		return fmt.Errorf("failed to create PDF: %v", err)
+	}
+
+	fmt.Printf("Created searchable PDF: %s\n", pdfPath)
+	return nil
 }
