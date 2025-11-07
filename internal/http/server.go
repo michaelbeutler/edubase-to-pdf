@@ -43,6 +43,8 @@ type DownloadJob struct {
 	BookID       int
 	Width        int
 	Height       int
+	StartPage    int
+	EndPage      int
 	Status       string // pending, downloading, completed, failed
 	Progress     int    // current page number
 	TotalPages   int
@@ -81,9 +83,11 @@ type LoginResponse struct {
 }
 
 type StartDownloadRequest struct {
-	BookID int `json:"book_id"`
-	Width  int `json:"width,omitempty"`
-	Height int `json:"height,omitempty"`
+	BookID    int `json:"book_id"`
+	Width     int `json:"width,omitempty"`
+	Height    int `json:"height,omitempty"`
+	StartPage int `json:"start_page,omitempty"`
+	EndPage   int `json:"end_page,omitempty"`
 }
 
 type StartDownloadResponse struct {
@@ -301,11 +305,20 @@ func (s *Server) StartDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		height = 2160 // 4K default
 	}
 
+	// Set page range
+	startPage := req.StartPage
+	endPage := req.EndPage
+	if startPage <= 0 {
+		startPage = 1 // Default to page 1
+	}
+
 	job := &DownloadJob{
 		ID:           jobID,
 		BookID:       req.BookID,
 		Width:        width,
 		Height:       height,
+		StartPage:    startPage,
+		EndPage:      endPage,
 		Status:       "pending",
 		Progress:     0,
 		Message:      fmt.Sprintf("Download queued (Resolution: %dx%d)", width, height),
@@ -356,8 +369,8 @@ func (s *Server) processDownload(session *Session, job *DownloadJob) {
 	// Create book provider
 	bookProvider := edubase.NewBookProvider(session.page, job.BookID)
 
-	// Open book
-	if err := bookProvider.Open(1); err != nil {
+	// Open book at the start page
+	if err := bookProvider.Open(job.StartPage); err != nil {
 		job.Status = "failed"
 		job.Error = fmt.Sprintf("Failed to open book: %v", err)
 		job.Message = "Failed to open book"
@@ -365,8 +378,8 @@ func (s *Server) processDownload(session *Session, job *DownloadJob) {
 		return
 	}
 
-	// Get total pages
-	totalPages, err := bookProvider.GetTotalPages()
+	// Get total pages from book
+	totalPagesInBook, err := bookProvider.GetTotalPages()
 	if err != nil {
 		job.Status = "failed"
 		job.Error = fmt.Sprintf("Failed to get total pages: %v", err)
@@ -375,8 +388,30 @@ func (s *Server) processDownload(session *Session, job *DownloadJob) {
 		return
 	}
 
-	job.TotalPages = totalPages
-	job.Message = fmt.Sprintf("Downloading %d pages", totalPages)
+	// Determine the actual end page
+	endPage := job.EndPage
+	if endPage <= 0 || endPage > totalPagesInBook {
+		endPage = totalPagesInBook
+	}
+
+	// Validate page range
+	if job.StartPage > endPage {
+		job.Status = "failed"
+		job.Error = "Start page is greater than end page"
+		job.Message = "Invalid page range"
+		s.broadcastProgress(job)
+		return
+	}
+
+	// Calculate number of pages to download
+	pagesToDownload := endPage - job.StartPage + 1
+	job.TotalPages = pagesToDownload
+
+	if job.StartPage == 1 && endPage == totalPagesInBook {
+		job.Message = fmt.Sprintf("Downloading all %d pages", pagesToDownload)
+	} else {
+		job.Message = fmt.Sprintf("Downloading pages %d-%d (%d pages)", job.StartPage, endPage, pagesToDownload)
+	}
 	s.broadcastProgress(job)
 
 	// Create temp directory for screenshots
@@ -389,35 +424,27 @@ func (s *Server) processDownload(session *Session, job *DownloadJob) {
 		return
 	}
 
-	// Download each page
-	ocrTexts := make([]string, totalPages)
+	// Download each page in the range
+	ocrTexts := make([]string, pagesToDownload)
+	pageIndex := 0
 
-	for i := 1; i <= totalPages; i++ {
-		job.Progress = i
-		job.Message = fmt.Sprintf("Downloading page %d of %d", i, totalPages)
+	for pageNum := job.StartPage; pageNum <= endPage; pageNum++ {
+		pageIndex++
+		job.Progress = pageIndex
+		job.Message = fmt.Sprintf("Downloading page %d of %d (book page %d)", pageIndex, pagesToDownload, pageNum)
 		s.broadcastProgress(job)
 
-		// Extract text from the page BEFORE taking screenshot
-		pageText, err := bookProvider.GetPageText()
-		if err != nil {
-			fmt.Printf("Warning: Failed to extract text from page %d: %v\n", i, err)
-			ocrTexts[i-1] = ""
-		} else {
-			fmt.Printf("Extracted %d characters from page %d\n", len(pageText), i)
-			ocrTexts[i-1] = pageText
-		}
-
-		filename := filepath.Join(tempDir, fmt.Sprintf("page_%03d.jpg", i))
+		filename := filepath.Join(tempDir, fmt.Sprintf("page_%03d.jpg", pageIndex))
 		if err := bookProvider.Screenshot(filename); err != nil {
 			job.Status = "failed"
-			job.Error = fmt.Sprintf("Failed to screenshot page %d: %v", i, err)
-			job.Message = fmt.Sprintf("Failed to download page %d", i)
+			job.Error = fmt.Sprintf("Failed to screenshot page %d: %v", pageNum, err)
+			job.Message = fmt.Sprintf("Failed to download page %d", pageNum)
 			s.broadcastProgress(job)
 			return
 		}
 
-		// Go to next page if not the last page
-		if i < totalPages {
+		// Go to next page if not the last page in range
+		if pageNum < endPage {
 			if err := bookProvider.NextPage(); err != nil {
 				job.Status = "failed"
 				job.Error = fmt.Sprintf("Failed to go to next page: %v", err)
@@ -453,9 +480,9 @@ func (s *Server) processDownload(session *Session, job *DownloadJob) {
 
 	var a4ImagePaths []string
 
-	for i := 1; i <= totalPages; i++ {
+	for i := 1; i <= pagesToDownload; i++ {
 		job.Progress = i
-		job.Message = fmt.Sprintf("Converting to A4: page %d of %d", i, totalPages)
+		job.Message = fmt.Sprintf("Converting to A4: page %d of %d", i, pagesToDownload)
 		s.broadcastProgress(job)
 
 		srcPath := filepath.Join(tempDir, fmt.Sprintf("page_%03d.jpg", i))
@@ -486,7 +513,7 @@ func (s *Server) processDownload(session *Session, job *DownloadJob) {
 
 	job.PDFPath = pdfPath
 	job.Status = "completed"
-	job.Message = fmt.Sprintf("Download completed - %d pages in A4 format with searchable text", totalPages)
+	job.Message = fmt.Sprintf("Download completed - %d pages in A4 format with searchable text", pagesToDownload)
 	job.CompletedAt = time.Now()
 	s.broadcastProgress(job)
 }
