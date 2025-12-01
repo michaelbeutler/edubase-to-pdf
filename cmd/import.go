@@ -216,17 +216,40 @@ type importProcess struct {
 }
 
 func newPlaywrightPage() (playwright.Page, playwright.Browser, *playwright.Playwright) {
-	pw, _ := playwright.Run()
-	browser, _ := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
+	pw, err := playwright.Run()
+	if err != nil {
+		log.Fatalf("failed to start Playwright: %v\nIf you're running in Docker or a minimal Linux environment, make sure required system libraries are installed (e.g., libglib2.0-0, libnss3, libnspr4, libdbus-1-3, libatk1.0-0, libatk-bridge2.0-0, libcups2, libdrm2, libatspi2.0-0, libx11-6, libxcomposite1, libxdamage1, libxext6, libxfixes3, libxrandr2, libgbm1, libxcb1, libxkbcommon0, libpango-1.0-0, libcairo2, libasound2).", err)
+	}
+
+	launchOptions := playwright.BrowserTypeLaunchOptions{
 		Headless: playwright.Bool(!debug && !manualLogin),
 		Timeout:  playwright.Float(float64(timeout.Milliseconds())),
-	})
-	page, _ := browser.NewPage(playwright.BrowserNewPageOptions{
+		Args: []string{
+			"--no-sandbox",
+			"--disable-setuid-sandbox",
+			"--disable-dev-shm-usage",
+		},
+	}
+
+	browser, err := pw.Chromium.Launch(launchOptions)
+	if err != nil {
+		// best effort cleanup
+		_ = pw.Stop()
+		log.Fatalf("failed to launch Chromium: %v", err)
+	}
+
+	page, err := browser.NewPage(playwright.BrowserNewPageOptions{
 		Viewport: &playwright.Size{
 			Width:  *playwright.Int(width),
 			Height: *playwright.Int(height),
 		},
 	})
+	if err != nil {
+		_ = browser.Close()
+		_ = pw.Stop()
+		log.Fatalf("failed to create browser page: %v", err)
+	}
+
 	return page, browser, pw
 }
 
