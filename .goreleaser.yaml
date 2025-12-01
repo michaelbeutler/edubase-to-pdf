@@ -105,8 +105,6 @@ dockers_v2:
     images:
       - "ghcr.io/michaelbeutler/edubase-to-pdf:latest"
       - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Tag }}"
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}"
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}.{{ .Minor }}"
     platforms:
       - linux/amd64
       - linux/arm64
