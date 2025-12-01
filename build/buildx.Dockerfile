@@ -1,16 +1,36 @@
 # syntax=docker/dockerfile:1.4
-FROM --platform=$TARGETPLATFORM golang:1.25.4
+
+# Build stage: compile the binary for the target platform
+FROM --platform=$BUILDPLATFORM golang:1.25.4 AS builder
+
+ENV GOROOT=/usr/local/go \
+	GOTOOLCHAIN=auto \
+	CGO_ENABLED=0
+
+WORKDIR /src
+
+# Cache modules separately
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod \
+	--mount=type=cache,target=/root/.cache/go-build \
+	go mod download
+
+# Copy the rest of the source
+COPY . .
+
+# Build for the requested target OS/ARCH
+ARG TARGETOS
+ARG TARGETARCH
+RUN --mount=type=cache,target=/go/pkg/mod \
+	--mount=type=cache,target=/root/.cache/go-build \
+	GOOS="$TARGETOS" GOARCH="$TARGETARCH" go build -o /out/edubase-to-pdf ./
+
+# Runtime stage: include system deps and the compiled binary
+FROM --platform=$TARGETPLATFORM debian:bookworm-slim
 
 # Metadata as defined in OCI image spec annotations
 LABEL org.opencontainers.image.vendor="michaelbeutler"
 LABEL org.opencontainers.image.title="edubase-to-pdf"
-
-ENV GOROOT /usr/local/go
-
-# Allow to download a more recent version of Go.
-# https://go.dev/doc/toolchain
-# GOTOOLCHAIN=auto is shorthand for GOTOOLCHAIN=local+auto
-ENV GOTOOLCHAIN auto
 
 # Install Playwright browser runtime dependencies
 RUN set -eux; \
@@ -39,7 +59,8 @@ RUN set -eux; \
 			libxkbcommon0 \
 			libxrandr2 \
 			libxcb1; \
-		rm -rf /var/lib/apt/lists/*
+	rm -rf /var/lib/apt/lists/*
 
-COPY edubase-to-pdf /usr/bin/
+COPY --from=builder /out/edubase-to-pdf /usr/bin/edubase-to-pdf
+
 CMD ["edubase-to-pdf"]
