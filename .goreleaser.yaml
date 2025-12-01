@@ -25,20 +25,11 @@ builds:
       - darwin
       - windows
       - linux
-      - freebsd
-      - netbsd
-      - illumos
     goarch:
       - amd64
       - arm64
       - arm
-      - "386"
-      - ppc64le
-      - s390x
-      - mips64
-      - mips64le
-      - riscv64
-      - loong64
+
     goarm:
       - "6"
       - "7"
@@ -109,69 +100,16 @@ archives:
 #     skip_publish: false
 #     goamd64: v1
 
-dockers:
-  - use: buildx
-    goos: linux
-    goarch: amd64
-    dockerfile: build/buildx.Dockerfile
-    image_templates:
+dockers_v2:
+  - dockerfile: build/buildx.Dockerfile
+    images:
       - "ghcr.io/michaelbeutler/edubase-to-pdf:latest"
       - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Tag }}"
       - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}"
       - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}.{{ .Minor }}"
-    build_flag_templates:
-      - "--pull"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - '--platform=linux/amd64'
-  - use: buildx
-    goos: linux
-    goarch: arm64
-    dockerfile: build/buildx.Dockerfile
-    image_templates:
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:latest-arm64"
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Tag }}-arm64"
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}-arm64"
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}.{{ .Minor }}-arm64"
-    build_flag_templates:
-      - "--pull"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - '--platform=linux/arm64'
-  - use: buildx
-    goos: linux
-    goarch: amd64
-    dockerfile: build/buildx-alpine.Dockerfile
-    image_templates:
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:alpine"
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:latest-alpine"
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Tag }}-alpine"
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}-alpine"
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}.{{ .Minor }}-alpine"
-    build_flag_templates:
-      - "--pull"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - '--platform=linux/amd64'
-  - use: buildx
-    goos: linux
-    goarch: arm64
-    dockerfile: build/buildx-alpine.Dockerfile
-    image_templates:
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:alpine-arm64"
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:latest-alpine-arm64"
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Tag }}-alpine-arm64"
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}-alpine-arm64"
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Major }}.{{ .Minor }}-alpine-arm64"
-    build_flag_templates:
-      - "--pull"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - '--platform=linux/arm64'
+    platforms:
+      - linux/amd64
+      - linux/arm64
 
 changelog:
   sort: asc
