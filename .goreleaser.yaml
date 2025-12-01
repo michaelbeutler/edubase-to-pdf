@@ -103,11 +103,23 @@ archives:
 dockers_v2:
   - dockerfile: build/buildx.Dockerfile
     images:
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:latest"
-      - "ghcr.io/michaelbeutler/edubase-to-pdf:{{ .Tag }}"
+      - "ghcr.io/michaelbeutler/edubase-to-pdf"
+    tags:
+      - latest
+      - "{{ .Tag }}"
+      - "{{ .Major }}"
+      - "{{ .Major }}.{{ .Minor }}"
     platforms:
       - linux/amd64
       - linux/arm64
+    labels:
+      org.opencontainers.image.created: "{{ .Date }}"
+      org.opencontainers.image.revision: "{{ .FullCommit }}"
+      org.opencontainers.image.version: "{{ .Version }}"
+      org.opencontainers.image.title: "edubase-to-pdf"
+      org.opencontainers.image.description: "CLI to download Edubase books to PDF"
+      org.opencontainers.image.source: "https://github.com/michaelbeutler/edubase-to-pdf"
+      org.opencontainers.image.licenses: "MIT"
 
 changelog:
   sort: asc
