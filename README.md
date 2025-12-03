@@ -96,7 +96,7 @@ edubase-to-pdf import [flags]
   -d, --debug                 Debug-Modus. Browserfenster anzeigen.
   -M, --manual                Zugangsdaten manuell eingeben. Nützlich, wenn du Microsoft-Login nutzt oder den Entwickler:innen nicht vertraust 🪟.
   -e, --email string          Edubase-E-Mail für den Login. 📧
-  -H, --height int            Browserhöhe in Pixeln; kann die Screenshot-Qualität beeinflussen. (Standard 1440) 🔍
+  -H, --height int            Browserhöhe in Pixeln; kann die Screenshot-Qualität beeinflussen. (Standard 1080) 🔍
   -h, --help                  Hilfe für import.
   -m, --max-pages int         Maximale Seitenzahl, die aus dem Buch importiert werden soll. (Standard -1) 🔝
   -o  --img-overwrite         Vorhandene Screenshots überschreiben. 🖼️
@@ -104,8 +104,21 @@ edubase-to-pdf import [flags]
   -p, --password string       Edubase-Passwort für den Login. 🔑
   -s, --start-page int        Startseite für den Import. (Standard 1) ➡
   -t, --temp string           Temporäres Verzeichnis für Screenshots, die zur PDF-Erstellung verwendet werden. (Standard "screenshots") 📂
-  -W, --width int             Browserbreite in Pixeln; kann die Screenshot-Qualität beeinflussen. (Standard 2560) 🔎
+  -W, --width int             Browserbreite in Pixeln; kann die Screenshot-Qualität beeinflussen. (Standard 1920) 🔎
   -T, --timeout duration      Maximale Zeit, die die App zum Download aller Seiten benötigt. (Für große Bücher erhöhen; Standard 5 Min.)
+```
+
+### ⚠️ Wichtiger Hinweis zur Bildschirmauflösung
+
+**Mindestauflösung:** Das Tool benötigt eine Mindestauflösung von **1920x1080 (1080p)**, um ordnungsgemäß zu funktionieren. Bei niedrigeren Auflösungen kann es zu Problemen beim Erkennen der maximalen Seitenzahl kommen, da die Webseite zu stark vergrößert dargestellt wird.
+
+- ✅ **Empfohlen:** 1920x1080 oder höher (Standard)
+- ⚠️ **Nicht empfohlen:** Auflösungen unter 1920x1080
+
+Falls du eine niedrigere Auflösung verwenden musst, kann das Tool eine Warnung ausgeben. In diesem Fall versuche, die Browser-Auflösung anzupassen:
+
+```shell
+edubase-to-pdf import -W 1920 -H 1080 -e deine_email@example.com -p dein_passwort
 ```
 
 ## Alternativen 🔄📚

@@ -25,8 +25,8 @@ var startPage int = 1
 var debug bool = false
 var imgOverwrite bool = false
 var manualLogin bool = false
-var width int = 2560
-var height int = 1440
+var width int = 1920
+var height int = 1080
 var pageDelay time.Duration = 500 * time.Millisecond
 var timeout time.Duration = 5 * time.Minute
 
@@ -66,6 +66,9 @@ Contact:
   For any issues or questions, please open an issue on the GitHub repository:
   https://github.com/michaelbeutler/edubase-to-pdf/issues`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// Check and warn about screen resolution
+		checkScreenResolution()
+
 		err := playwright.Install()
 		if err != nil {
 			log.Fatalf("could not install Playwright: %v", err)
@@ -204,6 +207,20 @@ func sanitizeFilename(filename string) string {
 		sanitized = strings.ReplaceAll(sanitized, char, "_")
 	}
 	return sanitized
+}
+
+func checkScreenResolution() {
+	// Minimum recommended resolution for the tool to work properly
+	const minRecommendedWidth = 1920
+	const minRecommendedHeight = 1080
+
+	if width < minRecommendedWidth || height < minRecommendedHeight {
+		log.Printf("\n⚠️  WARNING: Screen resolution %dx%d is below the recommended minimum of %dx%d.\n", 
+			width, height, minRecommendedWidth, minRecommendedHeight)
+		log.Printf("    This may cause issues with detecting the maximum page count.\n")
+		log.Printf("    Consider using at least 1920x1080 (1080p) resolution.\n")
+		log.Printf("    Use flags: -W %d -H %d\n\n", minRecommendedWidth, minRecommendedHeight)
+	}
 }
 
 type importProcess struct {

@@ -97,7 +97,7 @@ edubase-to-pdf import [flags]
   -d, --debug                 Debug mode. Show browser window.
   -M  --manual                Type your credentials manually. This is useful if you use Microsoft login or don't trust the creators of this program 🪟.
   -e, --email string          Edubase email for login. 📧
-  -H, --height int            Browser height in pixels; this can affect screenshot quality. (default 1440) 🔍
+  -H, --height int            Browser height in pixels; this can affect screenshot quality. (default 1080) 🔍
   -h, --help                  Help for import.
   -m, --max-pages int         Maximum pages to import from the book. (default -1) 🔝
   -o  --img-overwrite         Overwrite existing screenshots. 🖼️
@@ -105,8 +105,21 @@ edubase-to-pdf import [flags]
   -p, --password string       Edubase password for login. 🔑
   -s, --start-page int        Start page to import from the book. (default 1) ➡
   -t, --temp string           Temporary directory for screenshots; these will be used to generate the pdf. (default "screenshots") 📂
-  -W, --width int             Browser width in pixels; this can affect screenshot quality. (default 2560) 🔎
+  -W, --width int             Browser width in pixels; this can affect screenshot quality. (default 1920) 🔎
   -T, --timeout duration      Maximum time the app can take to download all pages. (increase this value for large books, default 5 min)
+```
+
+### ⚠️ Important Note About Screen Resolution
+
+**Minimum Resolution:** The tool requires a minimum resolution of **1920x1080 (1080p)** to work properly. Lower resolutions may cause issues with detecting the maximum page count, as the webpage may appear zoomed in too much.
+
+- ✅ **Recommended:** 1920x1080 or higher (default)
+- ⚠️ **Not recommended:** Resolutions below 1920x1080
+
+If you need to use a lower resolution, the tool will display a warning. In this case, try adjusting the browser resolution:
+
+```shell
+edubase-to-pdf import -W 1920 -H 1080 -e your_email@example.com -p your_password
 ```
 
 ## Alternatives 🔄📚

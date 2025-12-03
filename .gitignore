@@ -33,3 +33,7 @@ go.work
 
 results.json
 results.txt
+
+# Build artifacts
+edubase-to-pdf
+/build/
