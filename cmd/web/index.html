@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edubase to PDF - Download Client</title>
+    <!-- Using Tailwind CSS v3.4.1 from CDN with Subresource Integrity -->
+    <script src="https://cdn.tailwindcss.com/3.4.1" integrity="sha384-AqHK7rLoUbCQt31YEPM1qT+OP5eIzRO3QT5V3VGLbwb2TnY0RmvPAEXkrWFXHNfr" crossorigin="anonymous"></script>
+    <style>
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">📚 Edubase to PDF</h1>
+                <p class="text-gray-600">Download your eBooks as PDF files</p>
+            </div>
+
+            <!-- Main Card -->
+            <div class="bg-white shadow-lg rounded-lg p-8">
+                <form id="downloadForm" class="space-y-6">
+                    <!-- Email Field -->
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                            Email Address
+                        </label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                            placeholder="your.email@example.com"
+                        >
+                    </div>
+
+                    <!-- Password Field -->
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                            Password
+                        </label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                            placeholder="••••••••"
+                        >
+                    </div>
+
+                    <!-- Book ID Field -->
+                    <div>
+                        <label for="bookId" class="block text-sm font-medium text-gray-700 mb-2">
+                            Book ID
+                        </label>
+                        <input 
+                            type="number" 
+                            id="bookId" 
+                            name="bookId" 
+                            required
+                            min="1"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                            placeholder="12345"
+                        >
+                    </div>
+
+                    <!-- Start Page Field -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="startPage" class="block text-sm font-medium text-gray-700 mb-2">
+                                Start Page
+                            </label>
+                            <input 
+                                type="number" 
+                                id="startPage" 
+                                name="startPage" 
+                                value="1"
+                                min="1"
+                                required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                            >
+                        </div>
+
+                        <!-- Max Pages Field -->
+                        <div>
+                            <label for="maxPages" class="block text-sm font-medium text-gray-700 mb-2">
+                                Max Pages
+                            </label>
+                            <input 
+                                type="number" 
+                                id="maxPages" 
+                                name="maxPages" 
+                                value="-1"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                placeholder="-1 (all pages)"
+                            >
+                            <p class="text-xs text-gray-500 mt-1">Use -1 for all pages</p>
+                        </div>
+                    </div>
+
+                    <!-- Server URL Field -->
+                    <div>
+                        <label for="serverUrl" class="block text-sm font-medium text-gray-700 mb-2">
+                            Server URL
+                        </label>
+                        <input 
+                            type="url" 
+                            id="serverUrl" 
+                            name="serverUrl" 
+                            value="http://localhost:8080"
+                            required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                            placeholder="http://localhost:8080"
+                        >
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button 
+                        type="submit" 
+                        id="submitBtn"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center"
+                    >
+                        <span id="btnText">Download PDF</span>
+                        <div id="btnSpinner" class="spinner ml-2 hidden"></div>
+                    </button>
+                </form>
+
+                <!-- Status Messages -->
+                <div id="statusContainer" class="mt-6 hidden">
+                    <div id="statusMessage" class="p-4 rounded-lg"></div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div id="progressContainer" class="mt-6 hidden">
+                    <div class="mb-2 flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">Downloading...</span>
+                        <span id="progressText" class="text-sm text-gray-600">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-blue-900 mb-2">ℹ️ How to use</h3>
+                <ul class="space-y-2 text-sm text-blue-800">
+                    <li>• Enter your Edubase credentials</li>
+                    <li>• Provide the Book ID you want to download</li>
+                    <li>• Set start page (default: 1) and max pages (-1 for all)</li>
+                    <li>• Make sure the server is running on the specified URL</li>
+                    <li>• Click "Download PDF" to start the process</li>
+                </ul>
+            </div>
+
+            <!-- API Status -->
+            <div class="mt-4 text-center">
+                <button 
+                    id="checkHealth" 
+                    class="text-sm text-blue-600 hover:text-blue-700 underline"
+                >
+                    Check Server Health
+                </button>
+                <span id="healthStatus" class="ml-2 text-sm"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('downloadForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const statusContainer = document.getElementById('statusContainer');
+        const statusMessage = document.getElementById('statusMessage');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const checkHealthBtn = document.getElementById('checkHealth');
+        const healthStatus = document.getElementById('healthStatus');
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Reset status
+            hideStatus();
+            hideProgress();
+            
+            // Disable button and show spinner
+            submitBtn.disabled = true;
+            btnText.textContent = 'Processing...';
+            btnSpinner.classList.remove('hidden');
+            
+            const formData = {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                book_id: parseInt(document.getElementById('bookId').value),
+                start_page: parseInt(document.getElementById('startPage').value),
+                max_pages: parseInt(document.getElementById('maxPages').value)
+            };
+            
+            const serverUrl = document.getElementById('serverUrl').value;
+            
+            try {
+                showProgress();
+                
+                const response = await fetch(`${serverUrl}/download`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Download failed');
+                }
+                
+                // Get the PDF blob
+                const blob = await response.blob();
+                
+                // Update progress to 100%
+                updateProgress(100);
+                
+                // Create download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `book_${formData.book_id}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                showStatus('✅ PDF downloaded successfully!', 'success');
+                hideProgress();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`❌ Error: ${error.message}`, 'error');
+                hideProgress();
+            } finally {
+                // Re-enable button
+                submitBtn.disabled = false;
+                btnText.textContent = 'Download PDF';
+                btnSpinner.classList.add('hidden');
+            }
+        });
+
+        // Health check
+        checkHealthBtn.addEventListener('click', async () => {
+            const serverUrl = document.getElementById('serverUrl').value;
+            healthStatus.textContent = '⏳ Checking...';
+            healthStatus.className = 'ml-2 text-sm text-yellow-600';
+            
+            try {
+                const response = await fetch(`${serverUrl}/health`);
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'ok') {
+                    healthStatus.textContent = '✅ Server is online';
+                    healthStatus.className = 'ml-2 text-sm text-green-600 font-medium';
+                } else {
+                    throw new Error('Server returned unexpected response');
+                }
+            } catch (error) {
+                healthStatus.textContent = '❌ Server is offline';
+                healthStatus.className = 'ml-2 text-sm text-red-600 font-medium';
+            }
+        });
+
+        function showStatus(message, type) {
+            statusContainer.classList.remove('hidden');
+            statusMessage.textContent = message;
+            
+            if (type === 'success') {
+                statusMessage.className = 'p-4 rounded-lg bg-green-50 border border-green-200 text-green-800';
+            } else if (type === 'error') {
+                statusMessage.className = 'p-4 rounded-lg bg-red-50 border border-red-200 text-red-800';
+            } else {
+                statusMessage.className = 'p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-800';
+            }
+        }
+
+        function hideStatus() {
+            statusContainer.classList.add('hidden');
+        }
+
+        function showProgress() {
+            progressContainer.classList.remove('hidden');
+            updateProgress(50); // Show intermediate progress
+        }
+
+        function hideProgress() {
+            progressContainer.classList.add('hidden');
+            updateProgress(0);
+        }
+
+        function updateProgress(percent) {
+            progressBar.style.width = `${percent}%`;
+            progressText.textContent = `${percent}%`;
+        }
+    </script>
+</body>
+</html>
