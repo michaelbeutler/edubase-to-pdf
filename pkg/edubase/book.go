@@ -41,16 +41,41 @@ func (b *BookProvider) Open(page int) error {
 func (b *BookProvider) GetTotalPages() (int, error) {
 	time.Sleep(b.initialDelay)
 
-	rawTotalPages, err := b.page.Locator("#pagination > div > span").First().InnerText()
-	if err != nil {
-		return 0, fmt.Errorf("could not get max page number: %v", err)
+	// Wait for the pagination element to be visible and contain numbers
+	paginationLocator := b.page.Locator("#pagination > div > span").First()
+
+	// Wait for the element to be visible with a timeout
+	if err := paginationLocator.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(10000), // 10 second timeout
+	}); err != nil {
+		return 0, fmt.Errorf("pagination element not found or not visible: %v", err)
 	}
 
+	// Retry getting the text until it contains numbers (max 10 attempts)
+	var rawTotalPages string
+	var err error
 	re := regexp.MustCompile("[0-9]+")
+
+	for i := 0; i < 10; i++ {
+		rawTotalPages, err = paginationLocator.InnerText()
+		if err != nil {
+			return 0, fmt.Errorf("could not get max page number: %v", err)
+		}
+
+		// Check if we have numbers
+		if re.MatchString(rawTotalPages) {
+			break
+		}
+
+		// Wait a bit before retrying
+		time.Sleep(500 * time.Millisecond)
+	}
+
 	totalPagesString := re.FindAllString(rawTotalPages, -1)
 
 	if len(totalPagesString) == 0 {
-		return 0, fmt.Errorf("could not find max page number: %s", rawTotalPages)
+		return 0, fmt.Errorf("could not find max page number in pagination text: %q (element loaded but content not populated after retries)", rawTotalPages)
 	}
 
 	totalPages, err := strconv.Atoi(totalPagesString[0])
@@ -96,4 +121,49 @@ func (b *BookProvider) Screenshot(filename string) error {
 	}
 
 	return nil
+}
+
+// GetPageText extracts all visible text from the current page
+func (b *BookProvider) GetPageText() (string, error) {
+	// Wait a bit for the page to fully load
+	time.Sleep(500 * time.Millisecond)
+
+	// Use JavaScript to get text ONLY from the page SVG, excluding navigation
+	allText, err := b.page.EvaluateHandle(`() => {
+		// Get only text from the current page SVG, not navigation or UI
+		const pageContainer = document.querySelector('.lu-page-svg-container svg, .lu-page svg');
+		if (!pageContainer) {
+			console.log('No SVG container found');
+			return '';
+		}
+		
+		// Get all text elements within the SVG
+		const textElements = pageContainer.querySelectorAll('text, tspan');
+		let text = '';
+		const seenTexts = new Set(); // Avoid duplicates
+		
+		textElements.forEach(el => {
+			const content = (el.textContent || el.innerText || '').trim();
+			if (content && !seenTexts.has(content)) {
+				seenTexts.add(content);
+				text += content + ' ';
+			}
+		});
+		
+		console.log('Extracted from SVG:', text.substring(0, 100), 'Total:', text.length);
+		return text.trim();
+	}`)
+
+	if err == nil {
+		text, err := allText.JSONValue()
+		if err == nil {
+			if str, ok := text.(string); ok && len(str) > 0 {
+				fmt.Printf("Successfully extracted text from page SVG (%d chars) - Preview: %.80s...\n", len(str), str)
+				return str, nil
+			}
+		}
+	}
+
+	fmt.Printf("Warning: No text could be extracted from page SVG\n")
+	return "", nil // Return empty string instead of error so PDF generation continues
 }
