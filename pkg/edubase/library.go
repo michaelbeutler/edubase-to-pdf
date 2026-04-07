@@ -42,11 +42,16 @@ func (l *LibraryProvider) GetBooks() ([]Book, error) {
 		return []Book{}, fmt.Errorf("timed out waiting for library items to appear: %w", err)
 	}
 
-	// wait for network to settle so all books (including paid) finish loading
-	_ = l.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+	// Wait for network to settle so all books (including paid) finish loading.
+	// NetworkIdle may not resolve if the app uses persistent connections (e.g.
+	// WebSockets, long-polling). A timeout here is acceptable because the
+	// stabilization delay below still gives remaining items time to render.
+	if err := l.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
 		State:   playwright.LoadStateNetworkidle,
 		Timeout: playwright.Float(float64(l.timeout.Milliseconds())),
-	})
+	}); err != nil {
+		// non-fatal: proceed with whatever has loaded
+	}
 
 	// allow final DOM mutations after last API response
 	time.Sleep(l.stabilizationDelay)
@@ -55,6 +60,9 @@ func (l *LibraryProvider) GetBooks() ([]Book, error) {
 	if err != nil {
 		return []Book{}, err
 	}
+
+	// Clear any previously fetched books to avoid duplicates on repeated calls.
+	l.Books = nil
 
 	for _, libraryItem := range libraryItems {
 		bookId, err := libraryItem.GetAttribute("data-last-available-version")
