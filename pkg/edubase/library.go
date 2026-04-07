@@ -1,6 +1,7 @@
 package edubase
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -8,18 +9,20 @@ import (
 )
 
 type LibraryProvider struct {
-	page         playwright.Page
-	baseURL      string
-	Books        []Book
-	initialDelay time.Duration
+	page               playwright.Page
+	baseURL            string
+	Books              []Book
+	timeout            time.Duration
+	stabilizationDelay time.Duration
 }
 
 func NewLibraryProvider(page playwright.Page) *LibraryProvider {
 	return &LibraryProvider{
-		page:         page,
-		baseURL:      "https://app.edubase.ch",
-		Books:        []Book{},
-		initialDelay: 500 * time.Millisecond,
+		page:               page,
+		baseURL:            "https://app.edubase.ch",
+		Books:              []Book{},
+		timeout:            15 * time.Second,
+		stabilizationDelay: 2 * time.Second,
 	}
 }
 
@@ -29,10 +32,26 @@ type Book struct {
 }
 
 func (l *LibraryProvider) GetBooks() ([]Book, error) {
-	// wait for the library page to load
-	time.Sleep(l.initialDelay)
+	// wait for at least one library item to be visible in the DOM
+	itemLocator := l.page.Locator("#libraryItems > li:not(:first-child)")
+	err := itemLocator.First().WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(float64(l.timeout.Milliseconds())),
+	})
+	if err != nil {
+		return []Book{}, fmt.Errorf("timed out waiting for library items to appear: %w", err)
+	}
 
-	libraryItems, err := l.page.Locator("#libraryItems > li:not(:first-child)").All()
+	// wait for network to settle so all books (including paid) finish loading
+	_ = l.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(float64(l.timeout.Milliseconds())),
+	})
+
+	// allow final DOM mutations after last API response
+	time.Sleep(l.stabilizationDelay)
+
+	libraryItems, err := itemLocator.All()
 	if err != nil {
 		return []Book{}, err
 	}
