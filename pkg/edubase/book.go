@@ -41,7 +41,7 @@ func (b *BookProvider) Open(page int) error {
 func (b *BookProvider) GetTotalPages() (int, error) {
 	time.Sleep(b.initialDelay)
 
-	rawTotalPages, err := b.page.Locator("#pagination > div > span").First().InnerText()
+	rawTotalPages, err := b.page.Locator("#pagination > div > span").Last().InnerText()
 	if err != nil {
 		return 0, fmt.Errorf("could not get max page number: %v", err)
 	}
