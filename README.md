@@ -110,8 +110,7 @@ edubase-to-pdf import [flags]
 
 ## Alternativen 🔄📚
 
-- https://github.com/rtfmkiesel/edubase-downloader  
-- gerne Pull Request eröffnen, um weitere Alternativen hinzuzufügen  
+- gerne Pull Request eröffnen, um Alternativen hinzuzufügen  
 
 ## Rechtlicher Hinweis ⚖️
 
