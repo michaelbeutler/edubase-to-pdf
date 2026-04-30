@@ -110,7 +110,7 @@ edubase-to-pdf import [flags]
 
 ## Alternativen 🔄📚
 
-- gerne Pull Request eröffnen, um Alternativen hinzuzufügen  
+- gerne Pull Request eröffnen, um Alternatives Repository hinzuzufügen  
 
 ## Rechtlicher Hinweis ⚖️
 
