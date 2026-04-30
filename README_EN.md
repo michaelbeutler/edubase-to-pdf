@@ -111,8 +111,7 @@ edubase-to-pdf import [flags]
 
 ## Alternatives 🔄📚
 
-- https://github.com/rtfmkiesel/edubase-downloader
-- feel free to open a PR to add more alternatives
+- feel free to open a PR to add a alternative repo
 
 ## Legal Disclaimer ⚖️
 
